@@ -20,7 +20,7 @@ trule_test_SOURCES = trule_test.cc
 trule_test_LDADD = $(BOOST_UNIT_TEST_FRAMEWORK_LDFLAGS) $(BOOST_UNIT_TEST_FRAMEWORK_LIBS) libcdec.a ../mteval/libmteval.a ../utils/libutils.a
 
 cdec_SOURCES = cdec.cc
-cdec_LDFLAGS= -rdynamic
+cdec_LDFLAGS= -rdynamic $(STATIC_FLAGS)
 cdec_LDADD = libcdec.a ../mteval/libmteval.a ../utils/libutils.a ../klm/search/libksearch.a ../klm/lm/libklm.a ../klm/util/libklm_util.a ../klm/util/double-conversion/libklm_util_double.a
 
 minimal_decoder_SOURCES = minimal_decoder.cc

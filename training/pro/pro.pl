@@ -69,18 +69,19 @@ my $reg_previous = 5000;
 
 # Process command-line options
 if (GetOptions(
-	"config=s" => \$iniFile,
-	"weights=s" => \$initial_weights,
-        "devset=s" => \$devset,
-	"jobs=i" => \$jobs,
-	"metric=s" => \$metric,
-	"pass-suffix=s" => \$pass_suffix,
-        "qsub" => \$useqsub,
-	"help" => \$help,
-	"reg=f" => \$reg,
-	"reg-previous=f" => \$reg_previous,
+  "config=s" => \$iniFile,
+  "weights=s" => \$initial_weights,
+  "devset=s" => \$devset,
+  "jobs=i" => \$jobs,
+  "max-iterations=i" => \$max_iterations,
+  "metric=s" => \$metric,
+  "pass-suffix=s" => \$pass_suffix,
+  "qsub" => \$useqsub,
+  "help" => \$help,
+  "reg=f" => \$reg,
+  "reg-previous=f" => \$reg_previous,
   "pmem=s" => \$pmem,
-	"output-dir=s" => \$dir,
+  "output-dir=s" => \$dir,
 ) == 0 || @ARGV!=0 || $help) {
 	print_help();
 	exit;

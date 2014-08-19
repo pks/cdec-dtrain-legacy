@@ -115,7 +115,7 @@ noinst_LIBRARIES = libextractor.a
 sacompile_SOURCES = sacompile.cc
 sacompile_LDADD = libextractor.a
 run_extractor_SOURCES = run_extractor.cc
-run_extractor_LDADD = libextractor.a
+run_extractor_LDADD = libextractor.a ../utils/libutils.a
 extract_SOURCES = extract.cc
 extract_LDADD = libextractor.a
 

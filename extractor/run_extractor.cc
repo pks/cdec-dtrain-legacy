@@ -33,6 +33,7 @@
 #include "time_util.h"
 #include "translation_table.h"
 #include "vocabulary.h"
+#include "../utils/filelib.h"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -42,7 +43,7 @@ using namespace features;
 
 // Returns the file path in which a given grammar should be written.
 fs::path GetGrammarFilePath(const fs::path& grammar_path, int file_number) {
-  string file_name = "grammar." + to_string(file_number);
+  string file_name = "grammar." + to_string(file_number) + ".gz";
   return grammar_path / file_name;
 }
 
@@ -239,8 +240,8 @@ int main(int argc, char** argv) {
     }
     Grammar grammar = extractor.GetGrammar(
         sentences[i], blacklisted_sentence_ids);
-    ofstream output(GetGrammarFilePath(grammar_path, i).c_str());
-    output << grammar;
+    WriteFile output(GetGrammarFilePath(grammar_path, i).c_str());
+    *output << grammar;
   }
 
   for (size_t i = 0; i < sentences.size(); ++i) {

@@ -4,7 +4,7 @@ require 'trollop'
 
 def usage
   STDERR.write "Usage: "
-  STDERR.write "ruby parallelize.rb -c <dtrain.ini> [-e <epochs=10>] [--randomize/-z] [--reshard/-y] -s <#shards|0> [-p <at once=9999>] -i <input> -r <refs> [--qsub/-q] [--dtrain_binary <path to dtrain binary>] [-l \"l2 select_k 100000\"] [--extra_qsub \"-l virtual_free=24G\"]\n"
+  STDERR.write "ruby parallelize.rb -c <dtrain.ini> [-e <epochs=10>] [--randomize/-z] [--reshard/-y] -s <#shards|0> [-p <at once=9999>] -i <input> -r <refs> [--qsub/-q] [--dtrain_binary <path to dtrain binary>] [-l \"l2 select_k 100000\"] [--extra_qsub \"-l mem_free=24G\"]\n"
   exit 1
 end
 
@@ -87,6 +87,7 @@ def make_shards(input, refs, num_shards, epoch, rand)
     refs_fns << refs_fn
     0.upto(shard_sz-1) { |i|
       j = index.pop
+      break if !j
       shard_in.write in_lines[j]
       shard_refs.write refs_lines[j]
     }

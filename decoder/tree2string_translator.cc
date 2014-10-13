@@ -2,6 +2,7 @@
 #include <vector>
 #include <queue>
 #include <map>
+#include <unordered_map>
 #include <unordered_set>
 #include <boost/shared_ptr.hpp>
 #include <boost/functional/hash.hpp>
@@ -31,12 +32,12 @@ static void ReadTree2StringGrammar(istream* in, Tree2StringGrammarNode* root, bo
     ++lc;
     if (line.size() == 0 || line[0] == '#') continue;
     std::vector<StringPiece> fields = TokenizeMultisep(line, " ||| ");
-    if (has_multiple_states && fields.size() != 4) {
-      cerr << "Expected 4 fields in rule file but line " << lc << " is:\n" << line << endl;
+    if (has_multiple_states && fields.size() < 4) {
+      cerr << "Expected at least 4 fields in rule file but line " << lc << " is:\n" << line << endl;
       abort();
     }
-    if (!has_multiple_states && fields.size() != 3) {
-      cerr << "Expected 3 fields in rule file but line " << lc << " is:\n" << line << endl;
+    if (!has_multiple_states && fields.size() < 3) {
+      cerr << "Expected at least 3 fields in rule file but line " << lc << " is:\n" << line << endl;
       abort();
     }
     
@@ -72,6 +73,7 @@ static void ReadTree2StringGrammar(istream* in, Tree2StringGrammarNode* root, bo
       cerr << "Not implemented...\n"; abort(); // TODO read in states
     } else {
       os << " ||| " << fields[1] << " ||| " << fields[2];
+      if (fields.size() > 3) os << " ||| " << fields[3];
       rule.reset(new TRule(os.str()));
     }
     cur->rules.push_back(rule);
@@ -286,6 +288,8 @@ struct Tree2StringTranslatorImpl {
                  const vector<double>& weights,
                  Hypergraph* minus_lm_forest) {
     cdec::TreeFragment input_tree(input, false);
+    smeta->src_tree_ = input_tree;
+    smeta->input_type_ = cdec::kTREE;
     if (add_pass_through_rules) CreatePassThroughRules(input_tree);
     Hypergraph hg;
     hg.ReserveNodes(input_tree.nodes.size());

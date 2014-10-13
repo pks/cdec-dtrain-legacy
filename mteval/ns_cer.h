@@ -1,13 +1,10 @@
-#ifndef _NS_CER_H_
-#define _NS_CER_H_
+#ifndef NS_CER_H_
+#define NS_CER_H_
 
 #include "ns.h"
 
 class CERMetric : public EvaluationMetric {
   friend class EvaluationMetric;
- private:
-  unsigned EditDistance(const std::string& hyp,
-                        const std::string& ref) const;
  protected:
   CERMetric() : EvaluationMetric("CER") {}
 

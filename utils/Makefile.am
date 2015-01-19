@@ -22,6 +22,7 @@ libutils_a_SOURCES = \
   alias_sampler.h \
   alignment_io.h \
   array2d.h \
+  b64featvector.h \
   b64tools.h \
   batched_append.h \
   city.h \
@@ -40,6 +41,8 @@ libutils_a_SOURCES = \
   kernel_string_subseq.h \
   logval.h \
   m.h \
+  maxent.h \
+  maxent.cpp \
   murmur_hash3.h \
   murmur_hash3.cc \
   named_enum.h \
@@ -70,6 +73,7 @@ libutils_a_SOURCES = \
   fast_lexical_cast.hpp \
   intrusive_refcount.hpp \
   alignment_io.cc \
+  b64featvector.cc \
   b64tools.cc \
   corpus_tools.cc \
   dict.cc \
@@ -117,4 +121,3 @@ stringlib_test_LDADD = libutils.a $(BOOST_UNIT_TEST_FRAMEWORK_LDFLAGS) $(BOOST_U
 # do NOT NOT NOT add any other -I includes NO NO NO NO NO ######
 AM_CPPFLAGS = -DBOOST_TEST_DYN_LINK -W -Wall -I. -I$(top_srcdir) -DTEST_DATA=\"$(top_srcdir)/utils/test_data\"
 ################################################################
-

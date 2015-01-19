@@ -3,6 +3,7 @@
 #include "ff.h"
 #include "ff_basic.h"
 #include "ff_context.h"
+#include "ff_const_reorder.h"
 #include "ff_spans.h"
 #include "ff_lm.h"
 #include "ff_klm.h"
@@ -14,6 +15,7 @@
 #include "ff_rules.h"
 #include "ff_ruleshape.h"
 #include "ff_bleu.h"
+#include "ff_soft_syn.h"
 #include "ff_soft_syntax.h"
 #include "ff_soft_syntax_mindist.h"
 #include "ff_source_path.h"
@@ -77,6 +79,7 @@ void register_feature_functions() {
   ff_registry.Register("WordPairFeatures", new FFFactory<WordPairFeatures>);
   ff_registry.Register("SourcePathFeatures", new FFFactory<SourcePathFeatures>);
   ff_registry.Register("WordSet", new FFFactory<WordSet>);
+  ff_registry.Register("ConstReorderFeature", new FFFactory<ConstReorderFeature>);
   ff_registry.Register("External", new FFFactory<ExternalFeature>);
+  ff_registry.Register("SoftSynFeature", new SoftSynFeatureFactory());
 }
-

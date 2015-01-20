@@ -311,7 +311,7 @@ main(int argc, char** argv)
   {
 
     string in;
-    string ref;
+    vector<string> ref;
     bool next = false, stop = false; // next iteration or premature stop
     if (t == 0) {
       if(!getline(*input, in)) next = true;
@@ -319,7 +319,8 @@ main(int argc, char** argv)
         vector<string> strs;
         boost::algorithm::split_regex(strs, in, boost::regex(" \\|\\|\\| "));
         in = strs[0];
-        ref = strs[1];
+        strs.erase(strs.begin());
+        ref = strs;
       }
     } else {
       if (ii == in_sz) next = true; // stop if we reach the end of our input
@@ -355,7 +356,7 @@ main(int argc, char** argv)
     lambdas.init_vector(&decoder_weights);
 
     // getting input
-    vector<WordID> ref_ids; // reference as vector<WordID>
+    vector<vector<WordID> ref_ids; // reference as vector<WordID>
     if (t == 0) {
       if (!read_bitext) {
         getline(*refs, ref);

@@ -44,7 +44,7 @@ bool InitCommandLine(int argc, char** argv, po::variables_map* conf) {
         ("no_add_viterbi,V","When writing model parameters, do not add Viterbi alignment points (may generate a grammar where some training sentence pairs are unreachable)")
 		("force_align,f",po::value<string>(), "Load previously written parameters to 'force align' input. Set --diagonal_tension and --mean_srclen_multiplier as estimated during training.")
 		("mean_srclen_multiplier,m",po::value<double>()->default_value(1), "When --force_align, use this source length multiplier")
-    ("init_ttable,J",po::value<string>()->default_value(""), "Initialize ttable with this file (output of -p). Also give --diagonal_tension.");
+    ("init_ttable,J",po::value<string>(), "Initialize ttable with this file (output of -p). Also give --diagonal_tension.");
   po::options_description clo("Command line options");
   clo.add_options()
         ("config", po::value<string>(), "Configuration file")
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
   }
 
   if (conf.count("init_ttable")) {
-	  ReadFile s2t_f(conf["force_align"].as<string>());
+	  ReadFile s2t_f(conf["init_ttable"].as<string>());
 	  s2t.DeserializeLogProbsFromText(s2t_f.stream());
   }
   

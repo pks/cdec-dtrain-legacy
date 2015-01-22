@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 {
   ReadFile rf(argv[1]);
   Hypergraph hg;
-  HypergraphIO::ReadFromJSON(rf.stream(), &hg);
+  HypergraphIO::ReadFromBinary(rf.stream(), &hg);
   SparseVector<double> v;
   ifstream f(argv[2]);
   string line;
@@ -41,5 +41,7 @@ int main(int argc, char** argv)
   clock_t end = clock();
   double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
   cout << elapsed_secs << " s" << endl;
+
+  return 0;
 }
 

@@ -1,15 +1,16 @@
                 cdec cfg 'cdec.ini'
 Loading the LM will be faster if you build a binary file.
-Reading ../standard//nc-wmt11.en.srilm.gz
+Reading ../standard/nc-wmt11.en.srilm.gz
 ----5---10---15---20---25---30---35---40---45---50---55---60---65---70---75---80---85---90---95--100
 ****************************************************************************************************
-Seeding random number sequence to 4126799437
+Seeding random number sequence to 1336015864
 
 dtrain
 Parameters:
                        k 100
                        N 4
                        T 1
+                   batch 0
                   scorer 'stupid_bleu'
              sample from 'kbest'
                   filter 'uniq'
@@ -22,41 +23,43 @@ Parameters:
           pair threshold 0
           select weights 'last'
                   l1 reg 0 'none'
+                    pclr no
                max pairs 4294967295
+                  repeat 1
                 cdec cfg 'cdec.ini'
-                   input 'work/shard.1.0.in'
-                    refs 'work/shard.1.0.refs'
+                   input ''
                   output 'work/weights.1.0'
 (a dot represents 10 inputs)
 Iteration #1 of 1.
-  5
+  3
 WEIGHTS
-              Glue = -0.3815
-       WordPenalty = +0.20064
-     LanguageModel = +0.95304
- LanguageModel_OOV = -0.264
-     PhraseModel_0 = -0.22362
-     PhraseModel_1 = +0.12254
-     PhraseModel_2 = +0.26328
-     PhraseModel_3 = +0.38018
-     PhraseModel_4 = -0.48654
-     PhraseModel_5 = +0
-     PhraseModel_6 = -0.3645
-       PassThrough = -0.2216
+              Glue = -0.2015
+       WordPenalty = +0.078303
+     LanguageModel = +0.90323
+ LanguageModel_OOV = -0.1378
+     PhraseModel_0 = -1.3044
+     PhraseModel_1 = -0.88246
+     PhraseModel_2 = +0.26379
+     PhraseModel_3 = -0.79106
+     PhraseModel_4 = -1.4702
+     PhraseModel_5 = +0.0218
+     PhraseModel_6 = -0.5283
+       PassThrough = -0.2531
         ---
-       1best avg score: 0.10863 (+0.10863)
- 1best avg model score: -4.9841 (-4.9841)
-           avg # pairs: 1345.4
-        avg # rank err: 822.4
-     avg # margin viol: 501
-    non0 feature count: 11
+       1best avg score: 0.062351 (+0.062351)
+ 1best avg model score: -47.109 (-47.109)
+           avg # pairs: 1284
+        avg # rank err: 844.33
+     avg # margin viol: 216.33
+       k-best loss imp: 100%
+    non0 feature count: 12
            avg list sz: 100
-           avg f count: 11.814
-(time 0.43 min, 5.2 s/S)
+           avg f count: 11.883
+(time 0.42 min, 8.3 s/S)
 
 Writing weights file to 'work/weights.1.0' ...
 done
 
 ---
-Best iteration: 1 [SCORE 'stupid_bleu'=0.10863].
-This took 0.43333 min.
+Best iteration: 1 [SCORE 'stupid_bleu'=0.062351].
+This took 0.41667 min.

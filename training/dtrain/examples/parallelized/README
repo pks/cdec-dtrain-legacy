@@ -1,5 +1,5 @@
 run for example
-  ../../parallelize.rb ./dtrain.ini 4 false 2 2 ./in ./refs
+  ../../parallelize.rb -c dtrain.ini -s 4 -e 3 -z -d ../../dtrain -p 2 -i in
 
-final weights will be in the file work/weights.3
+final weights will be in the file work/weights.2
 

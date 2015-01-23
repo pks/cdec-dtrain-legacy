@@ -31,13 +31,22 @@ BleuScorer::Bleu(NgramCounts& counts, const unsigned hyp_len, const unsigned ref
   return brevity_penalty(hyp_len, ref_len) * exp(sum);
 }
 
+size_t
+RefLen(vector<vector<WordID> > refs)
+{
+  size_t ref_len = 0;
+  for (auto r: refs)
+    ref_len = max(ref_len, r.size());
+  return ref_len;
+}
+
 score_t
-BleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
+BleuScorer::Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs,
                   const unsigned /*rank*/, const unsigned /*src_len*/)
 {
-  unsigned hyp_len = hyp.size(), ref_len = ref.size();
+  unsigned hyp_len = hyp.size(), ref_len = RefLen(refs);
   if (hyp_len == 0 || ref_len == 0) return 0.;
-  NgramCounts counts = make_ngram_counts(hyp, ref, N_);
+  NgramCounts counts = make_ngram_counts(hyp, refs, N_);
   return Bleu(counts, hyp_len, ref_len);
 }
 
@@ -52,12 +61,12 @@ BleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
  * NOTE: 0 iff no 1gram match ('grounded')
  */
 score_t
-StupidBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
+StupidBleuScorer::Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs,
                         const unsigned /*rank*/, const unsigned /*src_len*/)
 {
-  unsigned hyp_len = hyp.size(), ref_len = ref.size();
+  unsigned hyp_len = hyp.size(), ref_len = RefLen(refs);
   if (hyp_len == 0 || ref_len == 0) return 0.;
-  NgramCounts counts = make_ngram_counts(hyp, ref, N_);
+  NgramCounts counts = make_ngram_counts(hyp, refs, N_);
   unsigned M = N_;
   vector<score_t> v = w_;
   if (ref_len < N_) {
@@ -81,12 +90,12 @@ StupidBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
  * (Nakov et al. '12)
  */
 score_t
-FixedStupidBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
+FixedStupidBleuScorer::Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs,
                         const unsigned /*rank*/, const unsigned /*src_len*/)
 {
-  unsigned hyp_len = hyp.size(), ref_len = ref.size();
+  unsigned hyp_len = hyp.size(), ref_len = RefLen(refs);
   if (hyp_len == 0 || ref_len == 0) return 0.;
-  NgramCounts counts = make_ngram_counts(hyp, ref, N_);
+  NgramCounts counts = make_ngram_counts(hyp, refs, N_);
   unsigned M = N_;
   vector<score_t> v = w_;
   if (ref_len < N_) {
@@ -112,12 +121,12 @@ FixedStupidBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& re
  * NOTE: max is 0.9375 (with N=4)
  */
 score_t
-SmoothBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
+SmoothBleuScorer::Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs,
                         const unsigned /*rank*/, const unsigned /*src_len*/)
 {
-  unsigned hyp_len = hyp.size(), ref_len = ref.size();
+  unsigned hyp_len = hyp.size(), ref_len = RefLen(refs);
   if (hyp_len == 0 || ref_len == 0) return 0.;
-  NgramCounts counts = make_ngram_counts(hyp, ref, N_);
+  NgramCounts counts = make_ngram_counts(hyp, refs, N_);
   unsigned M = N_;
   if (ref_len < N_) M = ref_len;
   score_t sum = 0.;
@@ -143,12 +152,12 @@ SmoothBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
  * sum up Ngram precisions
  */
 score_t
-SumBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
+SumBleuScorer::Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs,
                         const unsigned /*rank*/, const unsigned /*src_len*/)
 {
-  unsigned hyp_len = hyp.size(), ref_len = ref.size();
+  unsigned hyp_len = hyp.size(), ref_len = RefLen(refs);
   if (hyp_len == 0 || ref_len == 0) return 0.;
-  NgramCounts counts = make_ngram_counts(hyp, ref, N_);
+  NgramCounts counts = make_ngram_counts(hyp, refs, N_);
   unsigned M = N_;
   if (ref_len < N_) M = ref_len;
   score_t sum = 0.;
@@ -167,12 +176,12 @@ SumBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
  * sum up exp(Ngram precisions)
  */
 score_t
-SumExpBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
+SumExpBleuScorer::Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs,
                         const unsigned /*rank*/, const unsigned /*src_len*/)
 {
-  unsigned hyp_len = hyp.size(), ref_len = ref.size();
+  unsigned hyp_len = hyp.size(), ref_len = RefLen(refs);
   if (hyp_len == 0 || ref_len == 0) return 0.;
-  NgramCounts counts = make_ngram_counts(hyp, ref, N_);
+  NgramCounts counts = make_ngram_counts(hyp, refs, N_);
   unsigned M = N_;
   if (ref_len < N_) M = ref_len;
   score_t sum = 0.;
@@ -191,12 +200,12 @@ SumExpBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
  * sum up exp(weight * log(Ngram precisions))
  */
 score_t
-SumWhateverBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
+SumWhateverBleuScorer::Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs,
                         const unsigned /*rank*/, const unsigned /*src_len*/)
 {
-  unsigned hyp_len = hyp.size(), ref_len = ref.size();
+  unsigned hyp_len = hyp.size(), ref_len = RefLen(refs);
   if (hyp_len == 0 || ref_len == 0) return 0.;
-  NgramCounts counts = make_ngram_counts(hyp, ref, N_);
+  NgramCounts counts = make_ngram_counts(hyp, refs, N_);
   unsigned M = N_;
   vector<score_t> v = w_;
   if (ref_len < N_) {
@@ -224,15 +233,15 @@ SumWhateverBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& re
  *       No scaling by src len.
  */
 score_t
-ApproxBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
+ApproxBleuScorer::Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs,
                         const unsigned rank, const unsigned src_len)
 {
-  unsigned hyp_len = hyp.size(), ref_len = ref.size();
+  unsigned hyp_len = hyp.size(), ref_len = RefLen(refs);
   if (ref_len == 0) return 0.;
   score_t score = 0.;
   NgramCounts counts(N_);
   if (hyp_len > 0) {
-    counts = make_ngram_counts(hyp, ref, N_);
+    counts = make_ngram_counts(hyp, refs, N_);
     NgramCounts tmp = glob_onebest_counts_ + counts;
     score = Bleu(tmp, hyp_len, ref_len);
   }
@@ -255,16 +264,16 @@ ApproxBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
  *
  */
 score_t
-LinearBleuScorer::Score(const vector<WordID>& hyp, const vector<WordID>& ref,
+LinearBleuScorer::Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs,
                         const unsigned rank, const unsigned /*src_len*/)
 {
-  unsigned hyp_len = hyp.size(), ref_len = ref.size();
+  unsigned hyp_len = hyp.size(), ref_len = RefLen(refs);
   if (ref_len == 0) return 0.;
   unsigned M = N_;
   if (ref_len < N_) M = ref_len;
   NgramCounts counts(M);
   if (hyp_len > 0)
-    counts = make_ngram_counts(hyp, ref, M);
+    counts = make_ngram_counts(hyp, refs, M);
   score_t ret = 0.;
   for (unsigned i = 0; i < M; i++) {
     if (counts.sum_[i] == 0 || onebest_counts_.sum_[i] == 0) break;

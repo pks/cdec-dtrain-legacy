@@ -52,7 +52,7 @@ struct KBestGetter : public HypSampler
       h.f = d->feature_values;
       h.model = log(d->score);
       h.rank = i;
-      h.score = scorer_->Score(h.w, *ref_, i, src_len_);
+      h.score = scorer_->Score(h.w, *refs_, i, src_len_);
       s_.push_back(h);
       sz_++;
       f_count_ += h.f.size();
@@ -73,7 +73,7 @@ struct KBestGetter : public HypSampler
       h.f = d->feature_values;
       h.model = log(d->score);
       h.rank = i;
-      h.score = scorer_->Score(h.w, *ref_, i, src_len_);
+      h.score = scorer_->Score(h.w, *refs_, i, src_len_);
       s_.push_back(h);
       sz_++;
       f_count_ += h.f.size();

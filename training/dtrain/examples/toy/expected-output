@@ -1,26 +1,29 @@
 Warning: hi_lo only works with pair_sampling XYX.
                 cdec cfg 'cdec.ini'
-Seeding random number sequence to 1664825829
+Seeding random number sequence to 3626026233
 
 dtrain
 Parameters:
                        k 4
                        N 4
                        T 2
+                   batch 0
                   scorer 'bleu'
              sample from 'kbest'
                   filter 'uniq'
            learning rate 1
                    gamma 0
              loss margin 0
+       faster perceptron 1
                    pairs 'all'
           pair threshold 0
           select weights 'last'
                   l1 reg 0 'none'
+                    pclr no
                max pairs 4294967295
+                  repeat 1
                 cdec cfg 'cdec.ini'
-                   input 'src'
-                    refs 'tgt'
+                   input ''
                   output '-'
 (a dot represents 10 inputs)
 Iteration #1 of 2.
@@ -32,12 +35,19 @@ WEIGHTS
         small_rule = -2
        little_rule = +3
        PassThrough = -5
+     PassThrough_1 = +0
+     PassThrough_2 = +0
+     PassThrough_3 = +0
+     PassThrough_4 = +0
+     PassThrough_5 = +0
+     PassThrough_6 = +0
         ---
        1best avg score: 0.5 (+0.5)
  1best avg model score: 2.5 (+2.5)
-           avg # pairs: 4
-        avg # rank err: 1.5
+           avg # pairs: 1.5
+        avg # rank err: 1.5 (meaningless)
      avg # margin viol: 0
+       k-best loss imp: 100%
     non0 feature count: 6
            avg list sz: 4
            avg f count: 2.875
@@ -52,12 +62,19 @@ WEIGHTS
         small_rule = -2
        little_rule = +3
        PassThrough = -5
+     PassThrough_1 = +0
+     PassThrough_2 = +0
+     PassThrough_3 = +0
+     PassThrough_4 = +0
+     PassThrough_5 = +0
+     PassThrough_6 = +0
         ---
        1best avg score: 1 (+0.5)
  1best avg model score: 5 (+2.5)
-           avg # pairs: 5
-        avg # rank err: 0
+           avg # pairs: 0
+        avg # rank err: 0 (meaningless)
      avg # margin viol: 0
+       k-best loss imp: 100%
     non0 feature count: 6
            avg list sz: 4
            avg f count: 3

@@ -1,10 +1,11 @@
 #!/usr/bin/env ruby
 
 require 'trollop'
+require 'zipf'
 
 def usage
   STDERR.write "Usage: "
-  STDERR.write "ruby parallelize.rb -c <dtrain.ini> [-e <epochs=10>] [--randomize/-z] [--reshard/-y] -s <#shards|0> [-p <at once=9999>] -i <input> -r <refs> [--qsub/-q] [--dtrain_binary <path to dtrain binary>] [-l \"l2 select_k 100000\"] [--extra_qsub \"-l mem_free=24G\"]\n"
+  STDERR.write "ruby parallelize.rb -c <dtrain.ini> [-e <epochs=10>] [--randomize/-z] [--reshard/-y] -s <#shards|0> [-p <at once=9999>] -i <input> [--qsub/-q] [--dtrain_binary <path to dtrain binary>] [-l \"l2 select_k 100000\"] [--extra_qsub \"-l mem_free=24G\"]\n"
   exit 1
 end
 
@@ -16,15 +17,14 @@ opts = Trollop::options do
   opt :reshard, "reshard after each epoch", :type => :bool, :short => '-y', :default => false
   opt :shards, "number of shards", :type => :int
   opt :processes_at_once, "have this number (max) running at the same time", :type => :int, :default => 9999
-  opt :input, "input", :type => :string
-  opt :references, "references", :type => :string
+  opt :input, "input (bitext f ||| e ||| ...)", :type => :string
   opt :qsub, "use qsub", :type => :bool, :default => false
   opt :dtrain_binary, "path to dtrain binary", :type => :string
   opt :extra_qsub, "extra qsub args", :type => :string, :default => ""
   opt :per_shard_decoder_configs, "give special decoder config per shard", :type => :string, :short => '-o'
   opt :first_input_weights, "input weights for first iter", :type => :string, :default => '', :short => '-w'
 end
-usage if not opts[:config]&&opts[:shards]&&opts[:input]&&opts[:references]
+usage if not opts[:config]&&opts[:shards]&&opts[:input]
 
 dtrain_dir = File.expand_path File.dirname(__FILE__)
 if not opts[:dtrain_binary]
@@ -51,7 +51,6 @@ else
   num_shards = opts[:shards]
 end
 input = opts[:input]
-refs  = opts[:references]
 use_qsub       = opts[:qsub]
 shards_at_once = opts[:processes_at_once]
 first_input_weights  = opts[:first_input_weights]
@@ -59,7 +58,7 @@ opts[:extra_qsub] = "-l #{opts[:extra_qsub]}" if opts[:extra_qsub]!=""
 
 `mkdir work`
 
-def make_shards(input, refs, num_shards, epoch, rand)
+def make_shards(input, num_shards, epoch, rand)
   lc = `wc -l #{input}`.split.first.to_i
   index = (0..lc-1).to_a
   index.reverse!
@@ -69,12 +68,8 @@ def make_shards(input, refs, num_shards, epoch, rand)
   leftover = 0 if leftover < 0
   in_f = File.new input, 'r'
   in_lines = in_f.readlines
-  refs_f = File.new refs, 'r'
-  refs_lines = refs_f.readlines
   shard_in_files = []
-  shard_refs_files = []
   in_fns = []
-  refs_fns = []
   new_num_shards = 0
   0.upto(num_shards-1) { |shard|
     break if index.size==0
@@ -82,41 +77,32 @@ def make_shards(input, refs, num_shards, epoch, rand)
     in_fn = "work/shard.#{shard}.#{epoch}.in"
     shard_in = File.new in_fn, 'w+'
     in_fns << in_fn
-    refs_fn = "work/shard.#{shard}.#{epoch}.refs"
-    shard_refs = File.new refs_fn, 'w+'
-    refs_fns << refs_fn
     0.upto(shard_sz-1) { |i|
       j = index.pop
       break if !j
       shard_in.write in_lines[j]
-      shard_refs.write refs_lines[j]
     }
     shard_in_files << shard_in
-    shard_refs_files << shard_refs
   }
   while leftover > 0
     j = index.pop
     shard_in_files[-1].write in_lines[j]
-    shard_refs_files[-1].write refs_lines[j]
     leftover -= 1
   end
-  (shard_in_files + shard_refs_files).each do |f| f.close end
+  shard_in_files.each do |f| f.close end
   in_f.close
-  refs_f.close
-  return in_fns, refs_fns, new_num_shards
+  return in_fns, new_num_shards
 end
 
 input_files = []
-refs_files = []
 if predefined_shards
   input_files = File.new(input).readlines.map {|i| i.strip }
-  refs_files = File.new(refs).readlines.map {|i| i.strip }
   if per_shard_decoder_configs
     decoder_configs = File.new(opts[:per_shard_decoder_configs]).readlines.map {|i| i.strip}
   end
   num_shards = input_files.size
 else
-  input_files, refs_files, num_shards = make_shards input, refs, num_shards, 0, rand
+  input_files, num_shards = make_shards input, num_shards, 0, rand
 end
 
 0.upto(epochs-1) { |epoch|
@@ -149,8 +135,7 @@ end
       end
       pids << Kernel.fork {
         `#{qsub_str_start}#{dtrain_bin} -c #{ini} #{cdec_cfg} #{input_weights}\
-          --input #{input_files[shard]}\
-          --refs #{refs_files[shard]}\
+          --bitext #{input_files[shard]}\
           --output work/weights.#{shard}.#{epoch}#{qsub_str_end} #{local_end}`
       }
       weights_files << "work/weights.#{shard}.#{epoch}"
@@ -163,7 +148,7 @@ end
   `#{cat} work/weights.*.#{epoch} > work/weights_cat`
   `#{ruby} #{lplp_rb} #{lplp_args} #{num_shards} < work/weights_cat > work/weights.#{epoch}`
   if rand and reshard and epoch+1!=epochs
-    input_files, refs_files, num_shards = make_shards input, refs, num_shards, epoch+1, rand
+    input_files, num_shards = make_shards input, num_shards, epoch+1, rand
   end
 }
 

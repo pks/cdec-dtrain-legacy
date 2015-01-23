@@ -64,7 +64,7 @@ struct LocalScorer
   vector<score_t> w_;
 
   virtual score_t
-  Score(const vector<WordID>& hyp, const vector<WordID>& ref, const unsigned rank, const unsigned src_len)=0;
+  Score(const vector<WordID>& hyp, const vector<vector<WordID> >& ref, const unsigned rank, const unsigned src_len)=0;
 
   virtual void Reset() {} // only for ApproxBleuScorer, LinearBleuScorer
 
@@ -88,11 +88,11 @@ struct LocalScorer
 struct HypSampler : public DecoderObserver
 {
   LocalScorer* scorer_;
-  vector<WordID>* ref_;
+  vector<vector<WordID> >* refs_;
   unsigned f_count_, sz_;
   virtual vector<ScoredHyp>* GetSamples()=0;
   inline void SetScorer(LocalScorer* scorer) { scorer_ = scorer; }
-  inline void SetRef(vector<WordID>& ref) { ref_ = &ref; }
+  inline void SetRef(vector<vector<WordID> >& refs) { refs_ = &refs; }
   inline unsigned get_f_count() { return f_count_; }
   inline unsigned get_sz() { return sz_; }
 };

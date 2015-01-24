@@ -3,7 +3,7 @@ Loading the LM will be faster if you build a binary file.
 Reading ../standard/nc-wmt11.en.srilm.gz
 ----5---10---15---20---25---30---35---40---45---50---55---60---65---70---75---80---85---90---95--100
 ****************************************************************************************************
-Seeding random number sequence to 2577966319
+Seeding random number sequence to 4087834873
 
 dtrain
 Parameters:
@@ -33,33 +33,33 @@ Parameters:
 Iteration #1 of 1.
   3
 WEIGHTS
-              Glue = -0.0358
-       WordPenalty = +0.099236
-     LanguageModel = +0.51874
- LanguageModel_OOV = -0.1512
-     PhraseModel_0 = -0.10121
-     PhraseModel_1 = -0.25462
-     PhraseModel_2 = -0.14282
-     PhraseModel_3 = +0.068512
-     PhraseModel_4 = -0.78139
-     PhraseModel_5 = +0
-     PhraseModel_6 = +0.1547
-       PassThrough = -0.075
+              Glue = +0.257
+       WordPenalty = +0.026926
+     LanguageModel = +0.67342
+ LanguageModel_OOV = -0.046
+     PhraseModel_0 = +0.25329
+     PhraseModel_1 = +0.20036
+     PhraseModel_2 = +0.00060731
+     PhraseModel_3 = +0.65578
+     PhraseModel_4 = +0.47916
+     PhraseModel_5 = +0.004
+     PhraseModel_6 = +0.1829
+       PassThrough = -0.082
         ---
-       1best avg score: 0.080513 (+0.080513)
- 1best avg model score: 6.1321 (+6.1321)
-           avg # pairs: 1848.3
-        avg # rank err: 1096.7
-     avg # margin viol: 751.67
+       1best avg score: 0.04518 (+0.04518)
+ 1best avg model score: 32.803 (+32.803)
+           avg # pairs: 1266.3
+        avg # rank err: 857
+     avg # margin viol: 386.67
        k-best loss imp: 100%
-    non0 feature count: 11
+    non0 feature count: 12
            avg list sz: 100
-           avg f count: 10.6
-(time 0.23 min, 4.7 s/S)
+           avg f count: 10.853
+(time 0.47 min, 9.3 s/S)
 
 Writing weights file to 'work/weights.0.0' ...
 done
 
 ---
-Best iteration: 1 [SCORE 'stupid_bleu'=0.080513].
-This took 0.23333 min.
+Best iteration: 1 [SCORE 'stupid_bleu'=0.04518].
+This took 0.46667 min.

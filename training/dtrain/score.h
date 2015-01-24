@@ -135,7 +135,7 @@ make_ngram_counts(const vector<WordID>& hyp, const vector<vector<WordID> >& refs
       if (ti != ref_ngrams.end())
         max_ref_count = max(max_ref_count, ti->second);
     }
-    counts.Add(it->second, max_ref_count, it->first.size() - 1);
+    counts.Add(it->second, min(it->second, max_ref_count), it->first.size() - 1);
   }
   return counts;
 }

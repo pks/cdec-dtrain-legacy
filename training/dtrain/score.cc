@@ -36,7 +36,7 @@ RefLen(vector<vector<WordID> > refs)
 {
   size_t ref_len = 0;
   for (auto r: refs)
-    ref_len = max(ref_len, r.size());
+    ref_len = max(ref_len, r.size()); // FIXME
   return ref_len;
 }
 

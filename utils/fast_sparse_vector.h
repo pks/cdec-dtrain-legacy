@@ -319,6 +319,12 @@ class FastSparseVector {
       get_or_create_bin(it->first) += it->second * scalar;
     }
   }
+  template <typename O>
+  inline void cw_mult(FastSparseVector<O>& other) {
+    for (iterator it = begin(); it != end(); ++it) {
+      it->second = other[it->first] * it->second;
+    }
+  }
   inline FastSparseVector& operator-=(const FastSparseVector& other) {
     const typename FastSparseVector::const_iterator end = other.end();
     for (typename FastSparseVector::const_iterator it = other.begin(); it != end; ++it) {

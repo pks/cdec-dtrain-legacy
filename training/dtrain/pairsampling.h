@@ -82,8 +82,8 @@ partXYX(vector<ScoredHyp>* s, vector<pair<ScoredHyp,ScoredHyp> >& training, scor
   }
   unsigned sep_lo = sz-sep;
   while (sep_lo > 0 && (*s)[sep_lo-1].score == (*s)[sep_lo].score) --sep_lo;
-  for (unsigned i = sep_hi; i < sz-sep_lo; i++) {
-    for (unsigned j = sz-sep_lo; j < sz; j++) {
+  for (unsigned i = sep_hi; i < sep_lo; i++) {
+    for (unsigned j = sep_lo; j < sz; j++) {
       if (misranked_only && !((*s)[i].model <= (*s)[j].model)) continue;
       if (threshold > 0) {
         if (accept_pair((*s)[i].score, (*s)[j].score, threshold))
@@ -100,9 +100,9 @@ partXYX(vector<ScoredHyp>* s, vector<pair<ScoredHyp,ScoredHyp> >& training, scor
 /*
  * pair sampling as in
  * 'Tuning as Ranking' (Hopkins & May, 2011)
- *     count = 5000
+ *     count = max (5000)
  * threshold = 5% BLEU (0.05 for param 3)
- *       cut = top 50
+ *       cut = top 10%
  */
 bool
 _PRO_cmp_pair_by_diff_d(pair<ScoredHyp,ScoredHyp> a, pair<ScoredHyp,ScoredHyp> b)
@@ -113,7 +113,7 @@ inline void
 PROsampling(vector<ScoredHyp>* s, vector<pair<ScoredHyp,ScoredHyp> >& training, score_t threshold, unsigned max, bool _unused=false, float _also_unused=0)
 {
   sort(s->begin(), s->end(), cmp_hyp_by_score_d);
-  unsigned max_count = 5000, count = 0, sz = s->size();
+  unsigned max_count = max, count = 0, sz = s->size();
   bool b = false;
   for (unsigned i = 0; i < sz-1; i++) {
     for (unsigned j = i+1; j < sz; j++) {
@@ -127,9 +127,9 @@ PROsampling(vector<ScoredHyp>* s, vector<pair<ScoredHyp,ScoredHyp> >& training, 
     }
     if (b) break;
   }
-  if (training.size() > 50) {
+  if (training.size() > max/10) {
     sort(training.begin(), training.end(), _PRO_cmp_pair_by_diff_d);
-    training.erase(training.begin()+50, training.end());
+    training.erase(training.begin()+(max/10), training.end());
   }
   return;
 }

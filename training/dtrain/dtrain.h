@@ -15,6 +15,7 @@
 
 #include "decoder.h"
 #include "ff_register.h"
+#include "sampler.h"
 #include "sentence_metadata.h"
 #include "verbose.h"
 #include "viterbi.h"

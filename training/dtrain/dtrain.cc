@@ -43,7 +43,6 @@ dtrain_init(int argc, char** argv, po::variables_map* conf)
     ("repeat",            po::value<unsigned>()->default_value(1),     "repeat optimization over kbest list this number of times")
     ("check",             po::value<bool>()->zero_tokens(),                                  "produce list of loss differentials")
     ("output_ranking",    po::value<string>()->default_value(""),                      "Output kbests with model scores and metric per iteration to this folder.")
-    ("fix_features",      po::value<bool>()->zero_tokens(),                  "Ignore all features that are not in input_weights.")
     ("noup",              po::value<bool>()->zero_tokens(),                                               "do not update weights");
   po::options_description cl("Command Line Options");
   cl.add_options()
@@ -112,12 +111,10 @@ main(int argc, char** argv)
   if (conf.count("verbose")) verbose = true;
   bool noup = false;
   if (conf.count("noup")) noup = true;
-  bool rescale = false;
-  if (conf.count("rescale")) rescale = true;
   bool keep = false;
   if (conf.count("keep")) keep = true;
-  bool fix_features = false;
-  if (conf.count("fix_features")) fix_features = true;
+  bool rescale = false;
+  if (conf.count("rescale")) rescale = true;
 
   const unsigned k = conf["k"].as<unsigned>();
   const unsigned N = conf["N"].as<unsigned>();
@@ -196,16 +193,8 @@ main(int argc, char** argv)
   vector<weight_t>& decoder_weights = decoder.CurrentWeightVector();
 
   SparseVector<weight_t> lambdas, cumulative_penalties, w_average, fixed;
-  if (conf.count("input_weights")) {
+  if (conf.count("input_weights"))
     Weights::InitFromFile(conf["input_weights"].as<string>(), &decoder_weights);
-    if (fix_features) {
-      Weights::InitSparseVector(decoder_weights, &fixed);
-      SparseVector<weight_t>::iterator it = fixed.begin();
-      for (; it != fixed.end(); ++it) {
-        it->second = 1.0;
-      }
-    }
-  }
   Weights::InitSparseVector(decoder_weights, &lambdas);
 
   // meta params for perceptron, SVM
@@ -344,8 +333,6 @@ main(int argc, char** argv)
     if (next || stop) break;
 
     // weights
-    if (fix_features)
-      lambdas.cw_mult(fixed);
     lambdas.init_vector(&decoder_weights);
 
     // getting input
@@ -657,8 +644,6 @@ main(int argc, char** argv)
 
   // write weights to file
   if (select_weights == "best" || keep) {
-    if (fix_features)
-      lambdas.cw_mult(fixed);
     lambdas.init_vector(&decoder_weights);
     string w_fn = "weights." + boost::lexical_cast<string>(t) + ".gz";
     Weights::WriteToFile(w_fn, decoder_weights, true);

@@ -12,7 +12,7 @@ dtrain_init(int argc, char** argv, po::variables_map* cfg)
 {
   po::options_description ini("Configuration File Options");
   ini.add_options()
-    ("bitext,b",          po::value<string>(),                                                            "bitext: 'src ||| tgt ||| tgt ||| ...'")
+    ("bitext,b",          po::value<string>(),                                            "bitext: 'src ||| tgt ||| tgt ||| ...'")
     ("output",            po::value<string>()->default_value("-"),                          "output weights file, '-' for STDOUT")
     ("input_weights",     po::value<string>(),                                "input weights file (e.g. from previous iteration)")
     ("decoder_config",    po::value<string>(),                                                      "configuration file for cdec")
@@ -31,12 +31,11 @@ dtrain_init(int argc, char** argv, po::variables_map* cfg)
     ("learning_rate",     po::value<weight_t>()->default_value(1.0),                                              "learning rate")
     ("gamma",             po::value<weight_t>()->default_value(0.),                            "gamma for SVM (0 for perceptron)")
     ("select_weights",    po::value<string>()->default_value("last"),     "output best, last, avg weights ('VOID' to throw away)")
-    ("rescale",           po::value<bool>()->zero_tokens(),                              "rescale weight vector after each input")
-    ("l1_reg",            po::value<string>()->default_value("none"), "apply l1 regularization as in 'Tsuroka et al' (2010) UNTESTED")
+    ("rescale",           po::value<bool>()->zero_tokens(),                     "(re)scale data and weight vector to unit length")
+    ("l1_reg",            po::value<string>()->default_value("none"),      "apply l1 regularization as in 'Tsuroka et al' (2010)")
     ("l1_reg_strength",   po::value<weight_t>(),                                                     "l1 regularization strength")
     ("fselect",           po::value<weight_t>()->default_value(-1), "select top x percent (or by threshold) of features after each epoch NOT IMPLEMENTED") // TODO
     ("approx_bleu_d",     po::value<score_t>()->default_value(0.9),                                   "discount for approx. BLEU")
-    ("scale_bleu_diff",   po::value<bool>()->zero_tokens(),                      "learning rate <- bleu diff of a misranked pair")
     ("loss_margin",       po::value<weight_t>()->default_value(0.),  "update if no error in pref pair but model scores this near")
     ("max_pairs",         po::value<unsigned>()->default_value(std::numeric_limits<unsigned>::max()), "max. # of pairs per Sent.")
     ("pclr",              po::value<string>()->default_value("no"),         "use a (simple|adagrad) per-coordinate learning rate")
@@ -106,6 +105,7 @@ main(int argc, char** argv)
   // handle most parameters
   po::variables_map cfg;
   if (!dtrain_init(argc, argv, &cfg)) exit(1); // something is wrong
+
   bool quiet = false;
   if (cfg.count("quiet")) quiet = true;
   bool verbose = false;
@@ -139,8 +139,6 @@ main(int argc, char** argv)
   bool batch = false;
   if (cfg.count("batch")) batch = true;
   if (loss_margin > 9998.) loss_margin = std::numeric_limits<float>::max();
-  bool scale_bleu_diff = false;
-  if (cfg.count("scale_bleu_diff")) scale_bleu_diff = true;
   const string pclr = cfg["pclr"].as<string>();
   bool average = false;
   if (select_weights == "avg")
@@ -260,8 +258,7 @@ main(int argc, char** argv)
     cerr << setw(25) << "sample from " << "'" << sample_from << "'" << endl;
     if (sample_from == "kbest")
       cerr << setw(25) << "filter " << "'" << filter_type << "'" << endl;
-    if (!scale_bleu_diff) cerr << setw(25) << "learning rate " << eta << endl;
-    else cerr << setw(25) << "learning rate " << "bleu diff" << endl;
+    cerr << setw(25) << "learning rate " << eta << endl;
     cerr << setw(25) << "gamma " << gamma << endl;
     cerr << setw(25) << "loss margin " << loss_margin << endl;
     cerr << setw(25) << "faster perceptron " << faster_perceptron << endl;
@@ -438,6 +435,10 @@ main(int argc, char** argv)
 
       for (vector<pair<ScoredHyp,ScoredHyp> >::iterator it = pairs.begin();
            it != pairs.end(); it++) {
+        if (rescale) {
+          it->first.f /= it->first.f.l2norm();
+          it->second.f /= it->second.f.l2norm();
+        }
         score_t model_diff = it->first.model - it->second.model;
         score_t loss = max(0.0, -1.0 * model_diff);
         losses.push_back(loss);
@@ -475,7 +476,6 @@ main(int argc, char** argv)
           if (!rank_error && margin < loss_margin) margin_violations++;
         }
         if (rank_error && ki==0) rank_errors++;
-        if (scale_bleu_diff) eta = it->first.score - it->second.score;
         if (rank_error || margin < loss_margin) {
           SparseVector<weight_t> diff_vec = it->first.f - it->second.f;
           if (batch) {
@@ -673,7 +673,7 @@ main(int argc, char** argv)
   if (!noup) {
     if (!quiet) cerr << endl << "Writing weights file to '" << output_fn << "' ..." << endl;
     if (select_weights == "last" || average) { // last, average
-      WriteFile of(output_fn); // works with '-'
+      WriteFile of(output_fn);
       ostream& o = *of.stream();
       o.precision(17);
       o << _np;

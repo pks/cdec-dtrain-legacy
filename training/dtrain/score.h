@@ -6,7 +6,6 @@
 namespace dtrain
 {
 
-
 struct NgramCounts
 {
   unsigned N_;
@@ -30,6 +29,7 @@ struct NgramCounts
   {
     NgramCounts result = *this;
     result += other;
+
     return result;
   }
 
@@ -102,7 +102,7 @@ struct NgramCounts
 typedef map<vector<WordID>, unsigned> Ngrams;
 
 inline Ngrams
-make_ngrams(const vector<WordID>& s, const unsigned N)
+MakeNgrams(const vector<WordID>& s, const unsigned N)
 {
   Ngrams ngrams;
   vector<WordID> ng;
@@ -113,21 +113,21 @@ make_ngrams(const vector<WordID>& s, const unsigned N)
       ngrams[ng]++;
     }
   }
+
   return ngrams;
 }
 
 inline NgramCounts
-make_ngram_counts(const vector<WordID>& hyp, const vector<vector<WordID> >& refs, const unsigned N)
+MakeNgramCounts(const vector<WordID>& hyp, const vector<vector<WordID> >& refs, const unsigned N)
 {
-  Ngrams hyp_ngrams = make_ngrams(hyp, N);
+  Ngrams hyp_ngrams = MakeNgrams(hyp, N);
   vector<Ngrams> refs_ngrams;
   for (auto r: refs) {
-    Ngrams r_ng = make_ngrams(r, N);
+    Ngrams r_ng = MakeNgrams(r, N);
     refs_ngrams.push_back(r_ng);
   }
   NgramCounts counts(N);
-  Ngrams::iterator it;
-  Ngrams::iterator ti;
+  Ngrams::iterator it, ti;
   for (it = hyp_ngrams.begin(); it != hyp_ngrams.end(); it++) {
     unsigned max_ref_count = 0;
     for (auto ref_ngrams: refs_ngrams) {
@@ -137,89 +137,71 @@ make_ngram_counts(const vector<WordID>& hyp, const vector<vector<WordID> >& refs
     }
     counts.Add(it->second, min(it->second, max_ref_count), it->first.size() - 1);
   }
+
   return counts;
 }
 
-struct BleuScorer : public LocalScorer
-{
-  score_t Bleu(NgramCounts& counts, const unsigned hyp_len, const unsigned ref_len);
-  score_t Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs, const unsigned /*rank*/, const unsigned /*src_len*/);
-  void Reset() {}
-};
+/*
+ * per-sentence BLEU
+ * as in "Optimizing for Sentence-Level BLEU+1
+ *        Yields Short Translations"
+ * (Nakov et al. '12)
+ *
+ * [simply add 1 to reference length for calculation of BP]
+ *
+ */
 
-struct StupidBleuScorer : public LocalScorer
+struct PerSentenceBleuScorer
 {
-  score_t Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs, const unsigned /*rank*/, const unsigned /*src_len*/);
-  void Reset() {}
-};
+  const unsigned N_;
+  vector<score_t> w_;
 
-struct FixedStupidBleuScorer : public LocalScorer
-{
-  score_t Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs, const unsigned /*rank*/, const unsigned /*src_len*/);
-  void Reset() {}
-};
-
-struct SmoothBleuScorer : public LocalScorer
-{
-  score_t Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs, const unsigned /*rank*/, const unsigned /*src_len*/);
-  void Reset() {}
-};
-
-struct SumBleuScorer : public LocalScorer
-{
-  score_t Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs, const unsigned /*rank*/, const unsigned /*src_len*/);
-  void Reset() {}
-};
-
-struct SumExpBleuScorer : public LocalScorer
-{
-  score_t Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs, const unsigned /*rank*/, const unsigned /*src_len*/);
-  void Reset() {}
-};
-
-struct SumWhateverBleuScorer : public LocalScorer
-{
-  score_t Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs, const unsigned /*rank*/, const unsigned /*src_len*/);
-  void Reset() {};
-};
-
-struct ApproxBleuScorer : public BleuScorer
-{
-  NgramCounts glob_onebest_counts_;
-  unsigned glob_hyp_len_, glob_ref_len_, glob_src_len_;
-  score_t discount_;
-
-  ApproxBleuScorer(unsigned N, score_t d) : glob_onebest_counts_(NgramCounts(N)), discount_(d)
+  PerSentenceBleuScorer(unsigned n) : N_(n)
   {
-    glob_hyp_len_ = glob_ref_len_ = glob_src_len_ = 0;
+    for (auto i = 1; i <= N_; i++)
+      w_.push_back(1.0/N_);
   }
 
-  inline void Reset() {
-    glob_onebest_counts_.Zero();
-    glob_hyp_len_ = glob_ref_len_ = glob_src_len_ = 0.;
-  }
-
-  score_t Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs, const unsigned rank, const unsigned src_len);
-};
-
-struct LinearBleuScorer : public BleuScorer
-{
-  unsigned onebest_len_;
-  NgramCounts onebest_counts_;
-
-  LinearBleuScorer(unsigned N) : onebest_len_(1), onebest_counts_(N)
+  inline score_t
+  BrevityPenalty(const unsigned hyp_len, const unsigned ref_len)
   {
-    onebest_counts_.One();
+    if (hyp_len > ref_len) return 1;
+    return exp(1 - (score_t)ref_len/hyp_len);
   }
 
-  score_t Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs, const unsigned rank, const unsigned /*src_len*/);
-
-  inline void Reset() {
-    onebest_len_ = 1;
-    onebest_counts_.One();
+  score_t
+  Score(const vector<WordID>& hyp, const vector<vector<WordID> >& refs)
+  {
+    unsigned hyp_len = hyp.size(), ref_len = 0;
+    // best match reference length
+    if (refs.size() == 1)  {
+      ref_len = refs[0].size();
+    } else {
+      unsigned i = 0, best_idx = 0;
+      unsigned best = std::numeric_limits<unsigned>::max();
+      for (auto r: refs) {
+        unsigned d = abs(hyp_len-r.size());
+        if (best > d) best_idx = i;
+      }
+      ref_len = refs[best_idx].size();
+    }
+    if (hyp_len == 0 || ref_len == 0) return 0.;
+    NgramCounts counts = MakeNgramCounts(hyp, refs, N_);
+    unsigned M = N_;
+    vector<score_t> v = w_;
+    if (ref_len < N_) {
+      M = ref_len;
+      for (unsigned i = 0; i < M; i++) v[i] = 1/((score_t)M);
+    }
+    score_t sum = 0, add = 0;
+    for (unsigned i = 0; i < M; i++) {
+      if (i == 0 && (counts.sum_[i] == 0 || counts.clipped_[i] == 0)) return 0.;
+      if (i == 1) add = 1;
+      sum += v[i] * log(((score_t)counts.clipped_[i] + add)/((counts.sum_[i] + add)));
+    }
+    return  BrevityPenalty(hyp_len, ref_len+1) * exp(sum);
   }
 };
-
 
 } // namespace
 

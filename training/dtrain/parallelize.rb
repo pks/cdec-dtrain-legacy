@@ -18,11 +18,11 @@ opts = Trollop::options do
   opt :shards, "number of shards", :type => :int
   opt :processes_at_once, "have this number (max) running at the same time", :type => :int, :default => 9999
   opt :input, "input (bitext f ||| e ||| ...)", :type => :string
-  opt :qsub, "use qsub", :type => :bool, :default => false
   opt :dtrain_binary, "path to dtrain binary", :type => :string
-  opt :extra_qsub, "extra qsub args", :type => :string, :default => ""
-  opt :per_shard_decoder_configs, "give special decoder config per shard", :type => :string, :short => '-o'
+  opt :qsub, "use qsub", :type => :bool, :default => false
+  opt :qsub_args, "extra args for qsub", :type => :string, :default => "-l h_vmem=5G"
   opt :first_input_weights, "input weights for first iter", :type => :string, :default => '', :short => '-w'
+  opt :per_shard_decoder_configs, "give special decoder config per shard", :type => :string, :short => '-o'
 end
 usage if not opts[:config]&&opts[:shards]&&opts[:input]
 
@@ -54,7 +54,6 @@ input = opts[:input]
 use_qsub       = opts[:qsub]
 shards_at_once = opts[:processes_at_once]
 first_input_weights  = opts[:first_input_weights]
-opts[:extra_qsub] = "-l #{opts[:extra_qsub]}" if opts[:extra_qsub]!=""
 
 `mkdir work`
 
@@ -119,7 +118,7 @@ end
       qsub_str_start = qsub_str_end = ''
       local_end = ''
       if use_qsub
-        qsub_str_start = "qsub #{opts[:extra_qsub]} -cwd -sync y -b y -j y -o work/out.#{shard}.#{epoch} -N dtrain.#{shard}.#{epoch} \""
+        qsub_str_start = "qsub #{opts[:qsub_args]} -cwd -sync y -b y -j y -o work/out.#{shard}.#{epoch} -N dtrain.#{shard}.#{epoch} \""
         qsub_str_end = "\""
         local_end = ''
       else

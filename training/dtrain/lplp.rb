@@ -19,7 +19,8 @@ end
 
 # stats
 def median(feature_column, n)
-  return feature_column.concat(0.step(n-feature_column.size-1).map{|i|0}).sort[feature_column.size/2]
+  return feature_column.concat(0.step(n-feature_column.size-1).map{|i|0})\
+    .sort[feature_column.size/2]
 end
 
 def mean(feature_column, n)
@@ -28,7 +29,7 @@ end
 
 # selection
 def select_k(weights, norm_fun, n, k=10000)
-  weights.sort{|a,b| norm_fun.call(b[1], n) <=> norm_fun.call(a[1], n)}.each { |p|
+  weights.sort{|a,b| norm_fun.call(b[1], n)<=>norm_fun.call(a[1], n)}.each { |p|
     puts "#{p[0]}\t#{mean(p[1], n)}"
     k -= 1
     if k == 0 then break end

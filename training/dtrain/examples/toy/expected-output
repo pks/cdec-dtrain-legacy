@@ -1,40 +1,24 @@
-Warning: hi_lo only works with pair_sampling XYX.
-                cdec cfg 'cdec.ini'
-Seeding random number sequence to 3644621239
-
 dtrain
 Parameters:
                        k 4
                        N 4
                        T 2
-                   batch 0
-                  scorer 'bleu'
-             sample from 'kbest'
-                  filter 'uniq'
            learning rate 1
-                   gamma 0
-             loss margin 0
-       faster perceptron 1
-                   pairs 'all'
-          pair threshold 0
-          select weights 'last'
-                  l1 reg 0 'none'
-                    pclr no
-               max pairs 4294967295
-                  repeat 1
-                cdec cfg 'cdec.ini'
-                   input ''
-                  output '-'
-(a dot represents 10 inputs)
+            error margin 0
+                  l1 reg 0
+            decoder conf 'cdec.ini'
+                   input 'in'
+                  output 'weights'
+(a dot per input)
 Iteration #1 of 2.
-  2
+ ... 2
 WEIGHTS
               logp = +0
-        shell_rule = -1
-        house_rule = +2
-        small_rule = -2
+        shell_rule = +0
+        house_rule = +3
+        small_rule = +0
        little_rule = +3
-       PassThrough = -5
+       PassThrough = -15
      PassThrough_1 = +0
      PassThrough_2 = +0
      PassThrough_3 = +0
@@ -42,26 +26,23 @@ WEIGHTS
      PassThrough_5 = +0
      PassThrough_6 = +0
         ---
-       1best avg score: 0.5 (+0.5)
- 1best avg model score: 2.5 (+2.5)
-           avg # pairs: 1.5
-        avg # rank err: 1.5 (meaningless)
-     avg # margin viol: 0
-       k-best loss imp: 100%
-    non0 feature count: 6
+       1best avg score: 0.40937 (+0.40937)
+ 1best avg model score: 3
+           avg # pairs: 2.5
+   non-0 feature count: 4
            avg list sz: 4
            avg f count: 2.875
 (time 0 min, 0 s/S)
 
 Iteration #2 of 2.
-  2
+ ... 2
 WEIGHTS
               logp = +0
-        shell_rule = -1
-        house_rule = +2
-        small_rule = -2
+        shell_rule = +0
+        house_rule = +3
+        small_rule = +0
        little_rule = +3
-       PassThrough = -5
+       PassThrough = -15
      PassThrough_1 = +0
      PassThrough_2 = +0
      PassThrough_3 = +0
@@ -69,26 +50,14 @@ WEIGHTS
      PassThrough_5 = +0
      PassThrough_6 = +0
         ---
-       1best avg score: 1 (+0.5)
- 1best avg model score: 5 (+2.5)
+       1best avg score: 0.81873 (+0.40937)
+ 1best avg model score: 6
            avg # pairs: 0
-        avg # rank err: 0 (meaningless)
-     avg # margin viol: 0
-       k-best loss imp: 100%
-    non0 feature count: 6
+   non-0 feature count: 4
            avg list sz: 4
            avg f count: 3
 (time 0 min, 0 s/S)
 
-Writing weights file to '-' ...
-house_rule	2
-little_rule	3
-Glue	-4
-PassThrough	-5
-small_rule	-2
-shell_rule	-1
-done
-
 ---
-Best iteration: 2 [SCORE 'bleu'=1].
+Best iteration: 2 [GOLD = 0.81873].
 This took 0 min.

@@ -1,66 +1,44 @@
-                cdec cfg 'cdec.ini'
 Loading the LM will be faster if you build a binary file.
 Reading ../standard/nc-wmt11.en.srilm.gz
 ----5---10---15---20---25---30---35---40---45---50---55---60---65---70---75---80---85---90---95--100
 ****************************************************************************************************
-Seeding random number sequence to 2283043509
-
 dtrain
 Parameters:
                        k 100
                        N 4
                        T 1
-                   batch 0
-                  scorer 'stupid_bleu'
-             sample from 'kbest'
-                  filter 'uniq'
            learning rate 0.0001
-                   gamma 0
-             loss margin 1
-       faster perceptron 0
-                   pairs 'XYX'
-                   hi lo 0.1
-          pair threshold 0
-          select weights 'last'
-                  l1 reg 0 'none'
-                    pclr no
-               max pairs 4294967295
-                  repeat 1
-                cdec cfg 'cdec.ini'
-                   input ''
+            error margin 1
+                  l1 reg 0
+            decoder conf 'cdec.ini'
+                   input 'work/shard.0.0.in'
                   output 'work/weights.0.1'
               weights in 'work/weights.0'
-(a dot represents 10 inputs)
+(a dot per input)
 Iteration #1 of 1.
-  3
+ .... 3
 WEIGHTS
-              Glue = -0.17905
-       WordPenalty = +0.062126
-     LanguageModel = +0.66825
- LanguageModel_OOV = -0.15248
-     PhraseModel_0 = -0.55811
-     PhraseModel_1 = +0.12741
-     PhraseModel_2 = +0.60388
-     PhraseModel_3 = -0.44464
-     PhraseModel_4 = -0.63137
-     PhraseModel_5 = -0.0084
-     PhraseModel_6 = -0.20165
-       PassThrough = -0.23468
+              Glue = -0.40908
+       WordPenalty = +0.12967
+     LanguageModel = +0.39892
+ LanguageModel_OOV = -0.6314
+     PhraseModel_0 = -0.63992
+     PhraseModel_1 = +0.74198
+     PhraseModel_2 = +1.3096
+     PhraseModel_3 = -0.1216
+     PhraseModel_4 = -1.2274
+     PhraseModel_5 = +0.02435
+     PhraseModel_6 = -0.21093
+       PassThrough = -0.66155
         ---
-       1best avg score: 0.14066 (+0.14066)
- 1best avg model score: -37.614 (-37.614)
-           avg # pairs: 1244.7
-        avg # rank err: 728
-     avg # margin viol: 516.67
-       k-best loss imp: 100%
-    non0 feature count: 12
+       1best avg score: 0.15735 (+0.15735)
+ 1best avg model score: 46.831
+           avg # pairs: 2132.3
+   non-0 feature count: 12
            avg list sz: 100
-           avg f count: 11.507
-(time 0.45 min, 9 s/S)
-
-Writing weights file to 'work/weights.0.1' ...
-done
+           avg f count: 10.64
+(time 0.38 min, 7 s/S)
 
 ---
-Best iteration: 1 [SCORE 'stupid_bleu'=0.14066].
-This took 0.45 min.
+Best iteration: 1 [GOLD = 0.15735].
+This took 0.38333 min.

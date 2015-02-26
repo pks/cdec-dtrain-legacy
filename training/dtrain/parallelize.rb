@@ -3,61 +3,52 @@
 require 'trollop'
 require 'zipf'
 
-def usage
-  STDERR.write "Usage: "
-  STDERR.write "ruby parallelize.rb -c <dtrain.ini> [-e <epochs=10>] [--randomize/-z] [--reshard/-y] -s <#shards|0> [-p <at once=9999>] -i <input> [--qsub/-q] [--dtrain_binary <path to dtrain binary>] [-l \"l2 select_k 100000\"] [--extra_qsub \"-l mem_free=24G\"]\n"
-  exit 1
+conf = Trollop::options do
+  opt :config,                    "dtrain configuration",                  :type => :string
+  opt :input,                     "input as bitext (f ||| e)",             :type => :string
+  opt :epochs,                    "number of epochs",                      :type => :int, :default => 10
+  opt :lplp_args,                 "arguments for lplp.rb",                 :type => :string, :default => "l2 select_k 100000"
+  opt :randomize,                 "randomize shards once",                 :type => :bool,   :default => false, :short => '-z'
+  opt :reshard,                   "randomize after each epoch",            :type => :bool,   :default => false, :short => '-y'
+  opt :shards,                    "number of shards",                      :type => :int
+  opt :weights,                   "input weights for first epoch",         :type => :string, :default => ''
+  opt :per_shard_decoder_configs, "give custom decoder config per shard",  :type => :string, :short => '-o'
+  opt :processes_at_once,         "jobs to run at oce",                    :type => :int,    :default => 9999
+  opt :qsub,                      "use qsub",                              :type => :bool,   :default => false
+  opt :qsub_args,                 "extra args for qsub",                   :type => :string, :default => "-l h_vmem=5G"
+  opt :dtrain_binary,             "path to dtrain binary",                 :type => :string
 end
-
-opts = Trollop::options do
-  opt :config, "dtrain config file", :type => :string
-  opt :epochs, "number of epochs", :type => :int, :default => 10
-  opt :lplp_args, "arguments for lplp.rb", :type => :string, :default => "l2 select_k 100000"
-  opt :randomize, "randomize shards before each epoch", :type => :bool, :short => '-z', :default => false
-  opt :reshard, "reshard after each epoch", :type => :bool, :short => '-y', :default => false
-  opt :shards, "number of shards", :type => :int
-  opt :processes_at_once, "have this number (max) running at the same time", :type => :int, :default => 9999
-  opt :input, "input (bitext f ||| e ||| ...)", :type => :string
-  opt :dtrain_binary, "path to dtrain binary", :type => :string
-  opt :qsub, "use qsub", :type => :bool, :default => false
-  opt :qsub_args, "extra args for qsub", :type => :string, :default => "-l h_vmem=5G"
-  opt :first_input_weights, "input weights for first iter", :type => :string, :default => '', :short => '-w'
-  opt :per_shard_decoder_configs, "give special decoder config per shard", :type => :string, :short => '-o'
-end
-usage if not opts[:config]&&opts[:shards]&&opts[:input]
 
 dtrain_dir = File.expand_path File.dirname(__FILE__)
-if not opts[:dtrain_binary]
+if not conf[:dtrain_binary]
   dtrain_bin = "#{dtrain_dir}/dtrain"
 else
-  dtrain_bin = opts[:dtrain_binary]
+  dtrain_bin = conf[:dtrain_binary]
 end
-ruby       = '/usr/bin/ruby'
 lplp_rb    = "#{dtrain_dir}/lplp.rb"
-lplp_args  = opts[:lplp_args]
-cat        = '/bin/cat'
+lplp_args  = conf[:lplp_args]
 
-ini        = opts[:config]
-epochs     = opts[:epochs]
-rand       = opts[:randomize]
-reshard    = opts[:reshard]
-predefined_shards = false
+dtrain_conf       = conf[:config]
+epochs            = conf[:epochs]
+rand              = conf[:randomize]
+reshard           = conf[:reshard]
+predefined_shards         = false
 per_shard_decoder_configs = false
-if opts[:shards] == 0
+if conf[:shards] == 0
   predefined_shards = true
   num_shards = 0
-  per_shard_decoder_configs = true if opts[:per_shard_decoder_configs]
+  per_shard_decoder_configs = true if conf[:per_shard_decoder_configs]
 else
-  num_shards = opts[:shards]
+  num_shards = conf[:shards]
 end
-input = opts[:input]
-use_qsub       = opts[:qsub]
-shards_at_once = opts[:processes_at_once]
-first_input_weights  = opts[:first_input_weights]
+input               = conf[:input]
+use_qsub            = conf[:qsub]
+shards_at_once      = conf[:processes_at_once]
+first_input_weights = conf[:weights]
 
 `mkdir work`
 
-def make_shards(input, num_shards, epoch, rand)
+def make_shards input, num_shards, epoch, rand
   lc = `wc -l #{input}`.split.first.to_i
   index = (0..lc-1).to_a
   index.reverse!
@@ -97,7 +88,8 @@ input_files = []
 if predefined_shards
   input_files = File.new(input).readlines.map {|i| i.strip }
   if per_shard_decoder_configs
-    decoder_configs = File.new(opts[:per_shard_decoder_configs]).readlines.map {|i| i.strip}
+    decoder_configs = ReadFile.readlines_strip(conf[:per_shard_decoder_configs]
+                                              ).map { |i| i.strip }
   end
   num_shards = input_files.size
 else
@@ -118,22 +110,29 @@ end
       qsub_str_start = qsub_str_end = ''
       local_end = ''
       if use_qsub
-        qsub_str_start = "qsub #{opts[:qsub_args]} -cwd -sync y -b y -j y -o work/out.#{shard}.#{epoch} -N dtrain.#{shard}.#{epoch} \""
+        qsub_str_start = "qsub #{conf[:qsub_args]} -cwd -sync y -b y -j y\
+                           -o work/out.#{shard}.#{epoch}\
+                           -N dtrain.#{shard}.#{epoch} \""
         qsub_str_end = "\""
         local_end = ''
       else
         local_end = "2>work/out.#{shard}.#{epoch}"
       end
       if per_shard_decoder_configs
-        cdec_cfg = "--decoder_config #{decoder_configs[shard]}"
+        cdec_conf = "--decoder_config #{decoder_configs[shard]}"
       else
-        cdec_cfg = ""
+        cdec_conf = ""
       end
       if first_input_weights!='' && epoch == 0
         input_weights = "--input_weights #{first_input_weights}"
       end
       pids << Kernel.fork {
-        `#{qsub_str_start}#{dtrain_bin} -c #{ini} #{cdec_cfg} #{input_weights}\
+        puts         "#{qsub_str_start}#{dtrain_bin} -c #{dtrain_conf} #{cdec_conf}\
+          #{input_weights}\
+          --bitext #{input_files[shard]}\
+          --output work/weights.#{shard}.#{epoch}#{qsub_str_end} #{local_end}"
+        `#{qsub_str_start}#{dtrain_bin} -c #{dtrain_conf} #{cdec_conf}\
+          #{input_weights}\
           --bitext #{input_files[shard]}\
           --output work/weights.#{shard}.#{epoch}#{qsub_str_end} #{local_end}`
       }
@@ -144,8 +143,9 @@ end
     pids.each { |pid| Process.wait(pid) }
     pids.clear
   end
-  `#{cat} work/weights.*.#{epoch} > work/weights_cat`
-  `#{ruby} #{lplp_rb} #{lplp_args} #{num_shards} < work/weights_cat > work/weights.#{epoch}`
+  `cat work/weights.*.#{epoch} > work/weights_cat`
+  `ruby #{lplp_rb} #{lplp_args} #{num_shards} < work/weights_cat\
+                                                 > work/weights.#{epoch}`
   if rand and reshard and epoch+1!=epochs
     input_files, num_shards = make_shards input, num_shards, epoch+1, rand
   end

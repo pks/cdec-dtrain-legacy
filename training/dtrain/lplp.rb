@@ -1,4 +1,4 @@
-# lplp.rb
+#!/usr/bin/env ruby
 
 # norms
 def l0(feature_column, n)
@@ -19,7 +19,7 @@ end
 
 # stats
 def median(feature_column, n)
-  return feature_column.concat(0.step(n-feature_column.size-1).map{|i|0})\
+  return feature_column.concat(0.step(n-feature_column.size-1).map{|i|0})
     .sort[feature_column.size/2]
 end
 
@@ -85,7 +85,6 @@ def _test()
 end
 #_test()
 
-
 def usage()
   puts "lplp.rb <l0,l1,l2,linfty,mean,median> <cut|select_k> <k|threshold> <#shards> < <input>"
   puts "   l0...: norms for selection"
@@ -95,7 +94,7 @@ def usage()
   exit 1
 end
 
-if ARGV.size < 4 then usage end
+usage if ARGV.size<4
 norm_fun = method(ARGV[0].to_sym)
 type = ARGV[1]
 x = ARGV[2].to_f

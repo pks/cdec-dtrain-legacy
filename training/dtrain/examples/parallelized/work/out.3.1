@@ -2,43 +2,44 @@ Loading the LM will be faster if you build a binary file.
 Reading ../standard/nc-wmt11.en.srilm.gz
 ----5---10---15---20---25---30---35---40---45---50---55---60---65---70---75---80---85---90---95--100
 ****************************************************************************************************
+  Example feature: Shape_S00000_T00000
 dtrain
 Parameters:
                        k 100
                        N 4
                        T 1
            learning rate 0.0001
-            error margin 1
+                  margin 1
                   l1 reg 0
             decoder conf 'cdec.ini'
-                   input 'work/shard.3.0.in'
+                   input 'work/shard.3.0'
                   output 'work/weights.3.1'
               weights in 'work/weights.0'
-(a dot per input)
+(1 dot per processed input)
 Iteration #1 of 1.
- .. 1
+ . 1
 WEIGHTS
-              Glue = +0.31832
-       WordPenalty = +0.11139
-     LanguageModel = +0.95438
- LanguageModel_OOV = -0.0608
-     PhraseModel_0 = -0.98113
-     PhraseModel_1 = -0.090531
-     PhraseModel_2 = +0.79088
-     PhraseModel_3 = -0.57623
-     PhraseModel_4 = -1.4382
-     PhraseModel_5 = +0.02435
-     PhraseModel_6 = -0.10812
-       PassThrough = -0.09095
+              Glue = -0.2588
+       WordPenalty = +0.2907
+     LanguageModel = +1.633
+ LanguageModel_OOV = -0.0845
+     PhraseModel_0 = -0.3393
+     PhraseModel_1 = -0.02459
+     PhraseModel_2 = +0.2491
+     PhraseModel_3 = +0.07205
+     PhraseModel_4 = -0.9481
+     PhraseModel_5 = +0.02055
+     PhraseModel_6 = -0.2971
+       PassThrough = -0.3728
         ---
-       1best avg score: 0.084989 (+0.084989)
- 1best avg model score: -52.323
-           avg # pairs: 2487
-   non-0 feature count: 12
+       1best avg score: 4.499 (+4.499)
+ 1best avg model score: -45.68
+         avg # updates: 2016
+   non-0 feature count: 2130
+           avg f count: 175.9
            avg list sz: 100
-           avg f count: 12
-(time 0.1 min, 6 s/S)
+(time 0.05 min, 3 s/S)
 
 ---
-Best iteration: 1 [GOLD = 0.084989].
-This took 0.1 min.
+Best iteration: 1 [GOLD = 4.499].
+This took 0.05 min.

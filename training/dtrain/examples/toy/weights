@@ -1,4 +1,6 @@
-house_rule 3
+house_rule 4
+shell_rule -2
+small_rule -1
 little_rule 3
-Glue -12
-PassThrough -15
+Glue -8
+PassThrough -10

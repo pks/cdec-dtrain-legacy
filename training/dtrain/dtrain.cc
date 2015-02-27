@@ -114,13 +114,14 @@ main(int argc, char** argv)
 
     // produce some pretty output
     if (next) {
-      if (i%20==0)
+      if (i%20 == 0)
         cerr << " ";
       cerr << ".";
       if ((i+1)%20==0)
         cerr << " " << i+1 << endl;
     } else {
-      cerr << " " << i << endl;
+      if (i%20 != 0)
+        cerr << " " << i << endl;
     }
     cerr.flush();
 

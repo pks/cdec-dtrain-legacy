@@ -52,6 +52,8 @@ decoder/small_vector_test
 decoder/t2s_test
 decoder/trule_test
 decoder/weights_test
+decoder/network_decoder
+decoder/local
 depcomp
 dist
 dpmert/Makefile

@@ -90,7 +90,7 @@ def usage()
   puts "   l0...: norms for selection"
   puts "select_k: only output top k (according to the norm of their column vector) features"
   puts "     cut: output features with weight >= threshold"
-  puts "       n: if we do not have a shard count use this number for averaging"
+  puts "       n: number of shards for averaging"
   exit 1
 end
 

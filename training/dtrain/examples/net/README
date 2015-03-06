@@ -1,0 +1,6 @@
+run
+ ../../downpour.rb -c dtrain.ini -p 3 -i 10.gz -l 0.00001 -e 3
+or
+ zcat 10.gz | head -6 | ../../feed.rb 60667
+ ../../dtrain_net -c dtrain.ini -a tcp://127.0.0.1:60667
+

@@ -1,0 +1,45 @@
+Loading the LM will be faster if you build a binary file.
+Reading ../standard/nc-wmt11.en.srilm.gz
+----5---10---15---20---25---30---35---40---45---50---55---60---65---70---75---80---85---90---95--100
+****************************************************************************************************
+  Example feature: Shape_S00000_T00000
+dtrain
+Parameters:
+                       k 100
+                       N 4
+                       T 1
+           learning rate 0.0001
+                  margin 1
+                  l1 reg 0
+            decoder conf 'cdec.ini'
+                   input 'work/shard.1.0'
+                  output 'work/weights.1.2'
+              weights in 'work/weights.1'
+(1 dot per processed input)
+Iteration #1 of 1.
+ ... 3
+WEIGHTS
+              Glue = +0.3277
+       WordPenalty = +0.1759
+     LanguageModel = +0.2799
+ LanguageModel_OOV = -0.5643
+     PhraseModel_0 = -0.7466
+     PhraseModel_1 = +0.6823
+     PhraseModel_2 = +1.309
+     PhraseModel_3 = -0.3185
+     PhraseModel_4 = -0.94
+     PhraseModel_5 = +0.04098
+     PhraseModel_6 = -0.412
+       PassThrough = -0.587
+        ---
+       1best avg score: 13.7 (+13.7)
+ 1best avg model score: +71.09
+         avg # updates: 2223
+   non-0 feature count: 2791
+           avg f count: 152.8
+           avg list sz: 100
+(time 0.15 min, 3 s/S)
+
+---
+Best iteration: 1 [GOLD = 13.7].
+This took 0.15 min.

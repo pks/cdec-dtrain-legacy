@@ -13,15 +13,15 @@ struct ScoredKbest : public DecoderObserver
   const size_t k_;
   size_t feature_count_, effective_sz_;
   vector<ScoredHyp> samples_;
-  PerSentenceBleuScorer* scorer_;
+  Scorer* scorer_;
   vector<Ngrams>* ref_ngs_;
   vector<size_t>* ref_ls_;
 
-  ScoredKbest(const size_t k, PerSentenceBleuScorer* scorer) :
+  ScoredKbest(const size_t k, Scorer* scorer) :
     k_(k), scorer_(scorer) {}
 
   virtual void
-  NotifyTranslationForest(const SentenceMetadata& smeta, Hypergraph* hg)
+  NotifyTranslationForest(const SentenceMetadata& /*smeta*/, Hypergraph* hg)
   {
     samples_.clear(); effective_sz_ = feature_count_ = 0;
     KBest::KBestDerivations<vector<WordID>, ESentenceTraversal,

@@ -43,7 +43,7 @@ inline ostream& _np(ostream& out) { return out << resetiosflags(ios::showpos); }
 inline ostream& _p(ostream& out)  { return out << setiosflags(ios::showpos); }
 inline ostream& _p4(ostream& out) { return out << setprecision(4); }
 
-bool
+void
 dtrain_init(int argc, char** argv, po::variables_map* conf)
 {
   po::options_description ini("Configuration File Options");
@@ -55,6 +55,7 @@ dtrain_init(int argc, char** argv, po::variables_map* conf)
     ("learning_rate,l",   po::value<weight_t>()->default_value(1.0),                     "learning rate")
     ("l1_reg,r",          po::value<weight_t>()->default_value(0.),         "l1 regularization strength")
     ("margin,m",          po::value<weight_t>()->default_value(0.),       "margin for margin perceptron")
+    ("score,s",           po::value<string>()->default_value("nakov"),       "per-sentence BLEU approx.")
     ("N",                 po::value<size_t>()->default_value(4),              "N for BLEU approximation")
     ("input_weights,w",   po::value<string>(),                                      "input weights file")
     ("average,a",         po::value<bool>()->default_value(false),              "output average weights")
@@ -74,14 +75,12 @@ dtrain_init(int argc, char** argv, po::variables_map* conf)
   po::notify(*conf);
   if (!conf->count("decoder_conf")) {
     cerr << "Missing decoder configuration." << endl;
-    return false;
+    assert(false);
   }
   if (!conf->count("bitext")) {
     cerr << "No input given." << endl;
-    return false;
+    assert(false);
   }
-
-  return true;
 }
 
 } // namespace

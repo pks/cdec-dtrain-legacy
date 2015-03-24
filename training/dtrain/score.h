@@ -12,6 +12,8 @@ struct NgramCounts
   map<size_t, weight_t> clipped_;
   map<size_t, weight_t> sum_;
 
+  NgramCounts() {}
+
   NgramCounts(const size_t N) : N_(N) { Zero(); }
 
   inline void
@@ -24,13 +26,13 @@ struct NgramCounts
     }
   }
 
-  inline const NgramCounts
-  operator+(const NgramCounts &other) const
+  inline void
+  operator*=(const weight_t rhs)
   {
-    NgramCounts result = *this;
-    result += other;
-
-    return result;
+    for (unsigned i = 0; i < N_; i++) {
+      this->clipped_[i] *= rhs;
+      this->sum_[i] *= rhs;
+    }
   }
 
   inline void
@@ -112,85 +114,303 @@ MakeNgramCounts(const vector<WordID>& hyp,
   return counts;
 }
 
+class Scorer
+{
+  protected:
+    const size_t     N_;
+    vector<weight_t> w_;
+
+  public:
+    Scorer(size_t n): N_(n)
+    {
+      for (size_t i = 1; i <= N_; i++)
+        w_.push_back(1.0/N_);
+    }
+
+    inline bool
+    Init(const vector<WordID>& hyp,
+         const vector<Ngrams>& ref_ngs,
+         const vector<size_t>& ref_ls,
+         size_t& hl,
+         size_t& rl,
+         size_t& M,
+         vector<weight_t>& v,
+         NgramCounts& counts)
+    {
+      hl = hyp.size();
+      if (hl == 0) return false;
+      rl = BestMatchLength(hl, ref_ls);
+      if (rl == 0) return false;
+      counts = MakeNgramCounts(hyp, ref_ngs, N_);
+      if (rl < N_) {
+        M = rl;
+        for (size_t i = 0; i < M; i++) v.push_back(1/((weight_t)M));
+      } else {
+        M = N_;
+        v = w_;
+      }
+
+      return true;
+    }
+
+    inline weight_t
+    BrevityPenalty(const size_t hl, const size_t rl)
+    {
+      if (hl > rl)
+        return 1;
+
+      return exp(1 - (weight_t)rl/hl);
+    }
+
+    inline size_t
+    BestMatchLength(const size_t hl,
+                    const vector<size_t>& ref_ls)
+    {
+      size_t m;
+      if (ref_ls.size() == 1)  {
+        m = ref_ls.front();
+      } else {
+        size_t i = 0, best_idx = 0;
+        size_t best = numeric_limits<size_t>::max();
+        for (auto l: ref_ls) {
+          size_t d = abs(hl-l);
+          if (d < best) {
+            best_idx = i;
+            best = d;
+          }
+          i += 1;
+        }
+        m = ref_ls[best_idx];
+      }
+
+      return m;
+    }
+
+    virtual weight_t
+    Score(const vector<WordID>&,
+          const vector<Ngrams>&,
+          const vector<size_t>&) = 0;
+
+    void
+    UpdateContext(const vector<WordID>& /*hyp*/,
+                  const vector<Ngrams>& /*ref_ngs*/,
+                  const vector<size_t>& /*ref_ls*/,
+                  weight_t /*decay*/) {}
+};
+
 /*
- * per-sentence BLEU
+ * 'fixed' per-sentence BLEU
+ * simply add 1 to reference length for calculation of BP
+ *
  * as in "Optimizing for Sentence-Level BLEU+1
  *        Yields Short Translations"
  * (Nakov et al. '12)
  *
- * [simply add 1 to reference length for calculation of BP]
+ */
+class PerSentenceBleuScorer : public Scorer
+{
+  public:
+    PerSentenceBleuScorer(size_t n) : Scorer(n) {}
+
+    weight_t
+    Score(const vector<WordID>& hyp,
+          const vector<Ngrams>& ref_ngs,
+          const vector<size_t>& ref_ls)
+    {
+      size_t hl, rl, M;
+      vector<weight_t> v;
+      NgramCounts counts;
+      if (!Init(hyp, ref_ngs, ref_ls, hl, rl, M, v, counts))
+        return 0.;
+      weight_t sum=0, add=0;
+      for (size_t i = 0; i < M; i++) {
+        if (i == 0 && (counts.sum_[i] == 0 || counts.clipped_[i] == 0)) return 0.;
+        if (i > 0) add = 1;
+        sum += v[i] * log(((weight_t)counts.clipped_[i] + add)
+                          / ((counts.sum_[i] + add)));
+      }
+
+      return  BrevityPenalty(hl, rl+1) * exp(sum);
+    }
+};
+
+
+/*
+ * BLEU
+ * 0 if for one n \in {1..N} count is 0
+ *
+ * as in "BLEU: a Method for Automatic Evaluation
+ *        of Machine Translation"
+ * (Papineni et al. '02)
  *
  */
-struct PerSentenceBleuScorer
+
+class BleuScorer : public Scorer
 {
-  const size_t     N_;
-  vector<weight_t> w_;
+  public:
+    BleuScorer(size_t n) : Scorer(n) {}
 
-  PerSentenceBleuScorer(size_t n) : N_(n)
-  {
-    for (size_t i = 1; i <= N_; i++)
-      w_.push_back(1.0/N_);
-  }
-
-  inline weight_t
-  BrevityPenalty(const size_t hl, const size_t rl)
-  {
-    if (hl > rl)
-      return 1;
-
-    return exp(1 - (weight_t)rl/hl);
-  }
-
-  inline size_t
-  BestMatchLength(const size_t hl,
-                  const vector<size_t>& ref_ls)
-  {
-    size_t m;
-    if (ref_ls.size() == 1)  {
-      m = ref_ls.front();
-    } else {
-      size_t i = 0, best_idx = 0;
-      size_t best = numeric_limits<size_t>::max();
-      for (auto l: ref_ls) {
-        size_t d = abs(hl-l);
-        if (d < best) { 
-          best_idx = i;
-          best = d;
-        }
-        i += 1;
+    weight_t
+    Score(const vector<WordID>& hyp,
+          const vector<Ngrams>& ref_ngs,
+          const vector<size_t>& ref_ls)
+    {
+      size_t hl, rl, M;
+      vector<weight_t> v;
+      NgramCounts counts;
+      if (!Init(hyp, ref_ngs, ref_ls, hl, rl, M, v, counts))
+        return 0.;
+      weight_t sum = 0;
+      for (size_t i = 0; i < M; i++) {
+        if (counts.sum_[i] == 0 || counts.clipped_[i] == 0) return 0.;
+        sum += v[i] * log((weight_t)counts.clipped_[i]/counts.sum_[i]);
       }
-      m = ref_ls[best_idx];
+
+      return BrevityPenalty(hl, rl) * exp(sum);
+    }
+};
+
+/*
+ * original BLEU+1
+ * 0 iff no 1gram match ('grounded')
+ *
+ * as in "ORANGE: a Method for Evaluating
+ *        Automatic Evaluation Metrics
+ *        for Machine Translation"
+ * (Lin & Och '04)
+ *
+ */
+class OriginalPerSentenceBleuScorer : public Scorer
+{
+  public:
+    OriginalPerSentenceBleuScorer(size_t n) : Scorer(n) {}
+
+    weight_t
+    Score(const vector<WordID>& hyp,
+          const vector<Ngrams>& ref_ngs,
+          const vector<size_t>& ref_ls)
+    {
+      size_t hl, rl, M;
+      vector<weight_t> v;
+      NgramCounts counts;
+      if (!Init(hyp, ref_ngs, ref_ls, hl, rl, M, v, counts))
+        return 0.;
+      weight_t sum=0, add=0;
+      for (size_t i = 0; i < M; i++) {
+        if (i == 0 && (counts.sum_[i] == 0 || counts.clipped_[i] == 0)) return 0.;
+        if (i == 1) add = 1;
+        sum += v[i] * log(((weight_t)counts.clipped_[i] + add)/((counts.sum_[i] + add)));
+      }
+
+      return  BrevityPenalty(hl, rl) * exp(sum);
+    }
+};
+
+/*
+ * smooth BLEU
+ * max is 0.9375 (with N=4)
+ *
+ * as in "An End-to-End Discriminative Approach
+ *        to Machine Translation"
+ * (Liang et al. '06)
+ *
+ */
+class SmoothPerSentenceBleuScorer : public Scorer
+{
+  public:
+    SmoothPerSentenceBleuScorer(size_t n) : Scorer(n) {}
+
+    weight_t
+    Score(const vector<WordID>& hyp,
+          const vector<Ngrams>& ref_ngs,
+          const vector<size_t>& ref_ls)
+    {
+      size_t hl=hyp.size(), rl=BestMatchLength(hl, ref_ls);
+      if (hl == 0 || rl == 0) return 0.;
+      NgramCounts counts = MakeNgramCounts(hyp, ref_ngs, N_);
+      size_t M = N_;
+      if (rl < N_) M = rl;
+      weight_t sum = 0.;
+      vector<weight_t> i_bleu;
+      for (size_t i=0; i < M; i++)
+        i_bleu.push_back(0.);
+      for (size_t i=0; i < M; i++) {
+        if (counts.sum_[i] == 0 || counts.clipped_[i] == 0) {
+          break;
+        } else {
+          weight_t i_score = log((weight_t)counts.clipped_[i]/counts.sum_[i]);
+          for (size_t j=i; j < M; j++) {
+            i_bleu[j] += (1/((weight_t)j+1)) * i_score;
+          }
+        }
+        sum += exp(i_bleu[i])/pow(2.0, (double)(N_-i+2));
+      }
+
+      return BrevityPenalty(hl, hl) * sum;
+   }
+};
+
+/*
+ * approx. bleu
+ * Needs some more code in dtrain.cc .
+ * We do not scaling by source lengths, as hypotheses are compared only
+ * within an kbest list, not globally.
+ *
+ * as in "Online Large-Margin Training of Syntactic
+ *        and Structural Translation Features"
+ * (Chiang et al. '08)
+ *
+
+ */
+class ApproxBleuScorer : public Scorer
+{
+  private:
+    NgramCounts context;
+    weight_t    hyp_sz_sum;
+    weight_t    ref_sz_sum;
+
+  public:
+    ApproxBleuScorer(size_t n) :
+      Scorer(n), context(n), hyp_sz_sum(0), ref_sz_sum(0) {}
+
+    weight_t
+    Score(const vector<WordID>& hyp,
+          const vector<Ngrams>& ref_ngs,
+          const vector<size_t>& ref_ls)
+    {
+      size_t hl, rl, M;
+      vector<weight_t> v;
+      NgramCounts counts;
+      if (!Init(hyp, ref_ngs, ref_ls, hl, rl, M, v, counts))
+        return 0.;
+      counts += context;
+      weight_t sum = 0;
+      for (size_t i = 0; i < M; i++) {
+        if (counts.sum_[i] == 0 || counts.clipped_[i] == 0) return 0.;
+        sum += v[i] * log((weight_t)counts.clipped_[i]/counts.sum_[i]);
+      }
+
+      return BrevityPenalty(hyp_sz_sum+hl, ref_sz_sum+rl) * exp(sum);
     }
 
-    return m;
-  }
+    void
+    UpdateContext(const vector<WordID>& hyp,
+                  const vector<Ngrams>& ref_ngs,
+                  const vector<size_t>& ref_ls,
+                  weight_t decay=0.9)
+    {
+      size_t hl, rl, M;
+      vector<weight_t> v;
+      NgramCounts counts;
+      Init(hyp, ref_ngs, ref_ls, hl, rl, M, v, counts);
 
-  weight_t
-  Score(const vector<WordID>& hyp,
-        const vector<Ngrams>& ref_ngs,
-        const vector<size_t>& ref_ls)
-  {
-    size_t hl = hyp.size(), rl = 0;
-    if (hl == 0) return 0.;
-    rl = BestMatchLength(hl, ref_ls);
-    if (rl == 0) return 0.;
-    NgramCounts counts = MakeNgramCounts(hyp, ref_ngs, N_);
-    size_t M = N_;
-    vector<weight_t> v = w_;
-    if (rl < N_) {
-      M = rl;
-      for (size_t i = 0; i < M; i++) v[i] = 1/((weight_t)M);
+      context += counts;
+      context *= decay;
+      hyp_sz_sum += hl;
+      hyp_sz_sum *= decay;
+      ref_sz_sum += rl;
+      ref_sz_sum *= decay;
     }
-    weight_t sum = 0, add = 0;
-    for (size_t i = 0; i < M; i++) {
-      if (i == 0 && (counts.sum_[i] == 0 || counts.clipped_[i] == 0)) return 0.;
-      if (i > 0) add = 1;
-      sum += v[i] * log(((weight_t)counts.clipped_[i] + add)
-                        / ((counts.sum_[i] + add)));
-    }
-
-    return  BrevityPenalty(hl, rl+1) * exp(sum);
-  }
 };
 
 } // namespace

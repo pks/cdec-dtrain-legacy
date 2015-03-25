@@ -1,0 +1,8 @@
+to run the server do
+cd ../training/dtrain/examples/standard/
+../../../../decoder/network_decoder cdec.ini 
+
+to run the 'feeder' do
+cd ../training/dtrain/examples/standard/
+zcat nc-wmt11.100.gz | ../../../../decoder/feed.rb
+

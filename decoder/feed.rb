@@ -14,6 +14,7 @@ while true
     sock.send 'shutdown'
     break
   end
+  puts "sending source '#{line.strip}'"
   sock.send line.strip
   sleep 1
   puts "got translation: #{sock.recv}\n\n"

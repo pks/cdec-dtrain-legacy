@@ -17,7 +17,7 @@ recv(nn::socket& sock)
   size_t sz = sock.recv(&buf, NN_MSG, 0);
   if (buf) {
     string translation(buf, buf+sz);
-    cout << "received translation '" << translation << "'" << endl;
+    cout << "got translation '" << translation << "'" << endl << endl;
   }
 }
 

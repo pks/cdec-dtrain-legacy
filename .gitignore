@@ -53,7 +53,7 @@ decoder/t2s_test
 decoder/trule_test
 decoder/weights_test
 decoder/network_decoder
-decoder/local
+decoder/feed
 depcomp
 dist
 dpmert/Makefile

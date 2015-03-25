@@ -28,7 +28,7 @@ struct TheObserver : public DecoderObserver
 
 int send(nn::socket& sock, const string trans)
 {
-  cout << "sending translation '" << trans << "'" << endl;
+  cout << "sending translation '" << trans << "'" << endl << endl;
   sock.send(trans.c_str(), trans.size()+1, 0);
 }
 
@@ -36,10 +36,11 @@ bool
 recv(nn::socket& sock, string& source)
 {
   char *buf = NULL;
-  sock.recv(&buf, NN_MSG, 0);
+  size_t sz = sock.recv(&buf, NN_MSG, 0);
   if (buf) {
-    string s(buf);
+    string s(buf, buf+sz);
     source = s;
+    nn::freemsg(buf);
 
     return true;
   }
@@ -62,6 +63,8 @@ loop(Decoder& decoder, nn::socket& sock)
       cout << "received source '" << source << "'" << endl;
       decoder.Decode(source, &o);
       send(sock, o.translation);
+    } else {
+      // Oh no!
     }
   }
 }
@@ -75,7 +78,8 @@ main(int argc, char** argv)
   SetSilent(true);
 
   nn::socket sock(AF_SP, NN_PAIR);
-  string url = "ipc:///tmp/network_decoder.ipc";
+  //string url = "ipc:///tmp/network_decoder.ipc";
+  string url = "tcp://127.0.0.1:60666";
   sock.bind(url.c_str());
 
   loop(decoder, sock);

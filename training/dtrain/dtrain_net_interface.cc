@@ -1,5 +1,5 @@
 #include "dtrain_net.h"
-#include "sample.h"
+#include "sample_net.h"
 #include "score.h"
 #include "update.h"
 
@@ -48,7 +48,6 @@ main(int argc, char** argv)
   // socket
   nn::socket sock(AF_SP, NN_PAIR);
   sock.connect(master_addr.c_str());
-  sock.send("hello", 6, 0);
 
   size_t i = 0;
   while(true)
@@ -68,7 +67,19 @@ main(int argc, char** argv)
         vector<string> parts;
         boost::algorithm::split_regex(parts, in, boost::regex(" \\|\\|\\| "));
         if (parts[0] == "act:translate") {
+          cerr << "translating ..." << endl;
+          lambdas.init_vector(&decoder_weights);
+          observer->dont_score = true;
+          decoder.Decode(parts[1], observer);
+          observer->dont_score = false;
+          vector<ScoredHyp>* samples = observer->GetSamples();
+          ostringstream os;
+          PrintWordIDVec((*samples)[0].w, os);
+          sock.send(os.str().c_str(), os.str().size()+1, 0);
+          cerr << "done" << endl;
+          continue;
         } else {
+          cerr << "learning ..." << endl;
           source = parts[0];
           parts.erase(parts.begin());
           for (auto s: parts) {
@@ -83,18 +94,7 @@ main(int argc, char** argv)
         }
       }
     }
-    if (next) {
-      if (i%20 == 0)
-        cerr << " ";
-      cerr << ".";
-      if ((i+1)%20==0)
-        cerr << " " << i+1 << endl;
-    } else {
-      if (i%20 != 0)
-        cerr << " " << i << endl;
-    }
-    cerr.flush();
-
+    
     if (!next)
       break;
 
@@ -107,16 +107,12 @@ main(int argc, char** argv)
     // get pairs and update
     SparseVector<weight_t> updates;
     CollectUpdates(samples, updates, margin);
-    ostringstream os;
-    vectorAsString(updates, os);
-    sock.send(os.str().c_str(), os.str().size()+1, 0);
-    buf = NULL;
-    sz = sock.recv(&buf, NN_MSG, 0);
-    string new_weights(buf, buf+sz);
-    nn::freemsg(buf);
-    lambdas.clear();
-    updateVectorFromString(new_weights, lambdas);
+    lambdas.plus_eq_v_times_s(updates, 1.0); // fixme
+    string s = "x";
+    sock.send(s.c_str(), s.size()+1, 0);
     i++;
+
+    cerr << "done" << endl;
   } // input loop
 
   return 0;

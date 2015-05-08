@@ -217,6 +217,7 @@ training/dpmert/sentclient
 training/dpmert/sentserver
 training/dtrain/dtrain
 training/dtrain/dtrain_net
+training/dtrain/dtrain_net_interface
 training/latent_svm/latent_svm
 training/minrisk/minrisk_optimize
 training/mira/ada_opt_sm

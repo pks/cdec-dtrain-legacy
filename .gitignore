@@ -232,4 +232,5 @@ training/utils/sentserver
 utils/stringlib_test
 word-aligner/binderiv
 word-aligner/fast_align
+word-aligner/net_fa
 test-driver

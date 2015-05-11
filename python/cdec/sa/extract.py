@@ -97,6 +97,45 @@ def stream_extract():
             sys.stdout.write('Error: see README.md for stream mode usage.  Skipping line: {}\n'.format(line.strip()))
         sys.stdout.flush()
 
+def stream_extract2():
+    global extractor, online, compress
+    import nanomsg
+    from nanomsg import Socket, PAIR, PUB
+    socket = nanomsg.Socket(nanomsg.PAIR)
+    socket.bind('tcp://127.0.0.1:8888')
+    while True:
+        line = socket.recv()
+        if line.strip() == "shutdown":
+            sys.stderr.write("shutting down\n")
+            break
+        if not line:
+            break
+        fields = re.split('\s*\|\|\|\s*', line.strip())
+        # context ||| cmd
+        if len(fields) == 2:
+            (context, cmd) = fields
+            if cmd.lower() == 'drop':
+                if online:
+                    extractor.drop_ctx(context)
+                    sock.send('drop {}\n'.format(context))
+                else:
+                    sock.send('Error: online mode not set. Skipping line: {}\n'.format(line.strip()))
+        # context ||| sentence ||| grammar_file
+        elif len(fields) == 3:
+            (context, sentence, grammar_file) = fields
+            with (gzip.open if compress else open)(grammar_file, 'w') as output:
+                for rule in extractor.grammar(sentence, context):
+                    output.write(str(rule)+'\n')
+            socket.send('{}\n'.format(grammar_file))
+        # context ||| sentence ||| reference ||| alignment
+        elif len(fields) == 4:
+            (context, sentence, reference, alignment) = fields
+            extractor.add_instance(sentence, reference, alignment, context)
+            socket.send('learn {}\n'.format(context))
+        else:
+            socket.send('Error: see README.md for stream mode usage.  Skipping line: {}\n'.format(line.strip()))
+    socket.close()
+
 def main():
     global online
     logging.basicConfig(level=logging.INFO)
@@ -117,9 +156,11 @@ def main():
                         help='compress grammars with gzip')
     parser.add_argument('-t', '--stream', action='store_true',
                         help='stream mode (see README.md)')
+    parser.add_argument('-u', '--stream2', action='store_true',
+                        help='stream2 mode')
     args = parser.parse_args()
 
-    if not (args.grammars or args.stream):
+    if not (args.grammars or (args.stream or args.stream2)):
         sys.stderr.write('Error: either -g/--grammars or -t/--stream required\n')
         sys.exit(1)
 
@@ -133,6 +174,7 @@ def main():
 
     online = args.online
     stream = args.stream
+    stream2 = args.stream2
 
     start_time = monitor_cpu()
     if args.jobs > 1:
@@ -150,6 +192,8 @@ def main():
         make_extractor(args)
         if stream:
             stream_extract()
+        if stream2:
+            stream_extract2()
         else:
             for output in map(extract, enumerate(sys.stdin)):
                 print(output)

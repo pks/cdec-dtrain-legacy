@@ -97,12 +97,13 @@ def stream_extract():
             sys.stdout.write('Error: see README.md for stream mode usage.  Skipping line: {}\n'.format(line.strip()))
         sys.stdout.flush()
 
-def stream_extract2():
+def stream_extract2(url):
     global extractor, online, compress
     import nanomsg
     from nanomsg import Socket, PAIR, PUB
     socket = nanomsg.Socket(nanomsg.PAIR)
-    socket.bind('tcp://127.0.0.1:8888')
+    socket.bind(url)
+    socket.send("hello")
     while True:
         line = socket.recv()
         if line.strip() == "shutdown":
@@ -134,6 +135,7 @@ def stream_extract2():
             socket.send('learn {}\n'.format(context))
         else:
             socket.send('Error: see README.md for stream mode usage.  Skipping line: {}\n'.format(line.strip()))
+    socket.send("off")
     socket.close()
 
 def main():
@@ -158,6 +160,8 @@ def main():
                         help='stream mode (see README.md)')
     parser.add_argument('-u', '--stream2', action='store_true',
                         help='stream2 mode')
+    parser.add_argument('-S', '--sock_url', default='tcp://127.0.0.1:8888',
+                        help='socket url')
     args = parser.parse_args()
 
     if not (args.grammars or (args.stream or args.stream2)):
@@ -175,6 +179,8 @@ def main():
     online = args.online
     stream = args.stream
     stream2 = args.stream2
+    if stream2:
+        online = True
 
     start_time = monitor_cpu()
     if args.jobs > 1:
@@ -193,7 +199,7 @@ def main():
         if stream:
             stream_extract()
         if stream2:
-            stream_extract2()
+            stream_extract2(args.sock_url)
         else:
             for output in map(extract, enumerate(sys.stdin)):
                 print(output)

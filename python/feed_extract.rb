@@ -2,7 +2,7 @@
 
 require 'nanomsg'
 
-port = 8888
+port = 8888 
 sock = NanoMsg::PairSocket.new
 addr = "tcp://127.0.0.1:#{port}"
 #addr = "ipc:///tmp/network_decoder.ipc"

@@ -75,6 +75,8 @@ int main(int argc, char** argv) {
   sock.bind(url.c_str());
   int to = 100;
   sock.setsockopt(NN_SOL_SOCKET, NN_RCVTIMEO, &to, sizeof (to));
+  string hello = "hello";
+  sock.send(hello.c_str(), hello.size()+1, 0);
 
   while (true)
   {
@@ -85,6 +87,8 @@ int main(int argc, char** argv) {
     string line(buf, buf+sz);
     if (line == "shutdown") {
       cerr << "shutting down" << endl;
+      string shutdown = "off";
+      sock.send(shutdown.c_str(), shutdown.size()+1, 0);
       break;
     }
     cerr << "got '" << line << "'" << endl;
@@ -121,7 +125,7 @@ int main(int argc, char** argv) {
         ss << ' ' << (a_j - 1) << '-' << j;
     }
     string a = ss.str();
-    cerr << "sending '" << a << "'" << endl;
+    cerr << "sending " << a << endl;
     sock.send(a.c_str(), a.size()+1, 0);
   } // loop
 

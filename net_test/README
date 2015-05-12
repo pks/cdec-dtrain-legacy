@@ -1,0 +1,10 @@
+data from wmt13 (first 10k sentences)
+
+./run.rb < fake_input
+
+---
+get translation table
+../../word-aligner/fast_align -i d -d -p ef
+get suffix array
+python -m cdec.sa.compile --online -b a/d -a a/a -o sa/ -c extract.ini
+

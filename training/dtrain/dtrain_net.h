@@ -42,7 +42,8 @@ dtrain_net_init(int argc, char** argv, po::variables_map* conf)
     ("decoder_conf,C", po::value<string>(),                      "configuration file for decoder")
     ("k",              po::value<size_t>()->default_value(100),              "size of kbest list")
     ("N",              po::value<size_t>()->default_value(4),          "N for BLEU approximation")
-    ("margin,m",       po::value<weight_t>()->default_value(0.),   "margin for margin perceptron");
+    ("margin,m",       po::value<weight_t>()->default_value(0.),   "margin for margin perceptron")
+    ("output,o",       po::value<string>()->default_value(""),               "final weights file");
   po::options_description cl("Command Line Options");
   cl.add_options()
     ("conf,c", po::value<string>(), "dtrain configuration file")

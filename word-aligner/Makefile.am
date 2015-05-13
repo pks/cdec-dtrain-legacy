@@ -9,8 +9,8 @@ binderiv_LDADD = ../utils/libutils.a
 
 net_fa_SOURCES = net_fa.cc ttables.cc da.h ttables.h nn.hpp
 net_fa_LDADD = ../utils/libutils.a
-net_fa_LDFLAGS = $(STATIC_FLAGS) /usr/lib64/libnanomsg.so
+net_fa_LDFLAGS = $(STATIC_FLAGS) /fast_scratch/simianer/lfpe/nanomsg-0.5-beta/lib/libnanomsg.so
 
 EXTRA_DIST = aligner.pl ortho-norm support makefiles stemmers
 
-AM_CPPFLAGS = -W -Wall -I$(top_srcdir) -I$(top_srcdir)/utils -I$(top_srcdir)/training
+AM_CPPFLAGS = -W -Wall -I$(top_srcdir) -I$(top_srcdir)/utils -I$(top_srcdir)/training -I/fast_scratch/simianer/lfpe/nanomsg-0.5-beta/include

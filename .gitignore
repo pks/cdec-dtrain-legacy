@@ -189,6 +189,7 @@ training/test_ngram
 training/const_reorder/argument_reorder_model_trainer
 training/const_reorder/const_reorder_model_trainer
 utils/atools
+utils/atools_net
 utils/bin/
 utils/crp_test
 utils/dict_test

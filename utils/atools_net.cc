@@ -337,6 +337,11 @@ int main(int argc, char **argv) {
     if (buf) {
       const string in(buf, buf+sz);
       nn::freemsg(buf);
+      if (in == "shutdown") {
+        string off = "off";
+        sock.send(off.c_str(), off.size()+1, 0);
+        break;
+      }
       vector<string> parts;
       boost::algorithm::split_regex(parts, in, boost::regex(" \\|\\|\\| "));
       boost::shared_ptr<Array2D<bool> > out(new Array2D<bool>);

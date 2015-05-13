@@ -1,4 +1,4 @@
-bin_PROGRAMS = cdec minimal_decoder network_decoder feed
+bin_PROGRAMS = cdec minimal_decoder network_decoder
 
 noinst_PROGRAMS = \
   trule_test \
@@ -29,10 +29,7 @@ minimal_decoder_LDADD = libcdec.a ../utils/libutils.a
 network_decoder_SOURCES = network_decoder.cc nn.hpp
 network_decoder_LDADD = libcdec.a ../klm/search/libksearch.a ../mteval/libmteval.a ../utils/libutils.a ../klm/lm/libklm.a ../klm/util/libklm_util.a ../klm/util/double-conversion/libklm_util_double.a /usr/lib64/libnanomsg.so
 
-feed_SOURCES = feed.cc nn.hpp
-feed_LDADD = /usr/lib64/libnanomsg.so
-
-AM_CPPFLAGS = -DTEST_DATA=\"$(top_srcdir)/decoder/test_data\" -DBOOST_TEST_DYN_LINK -W -Wno-sign-compare -I$(top_srcdir) -I$(top_srcdir)/mteval -I$(top_srcdir)/utils -I$(top_srcdir)/klm
+AM_CPPFLAGS = -DTEST_DATA=\"$(top_srcdir)/decoder/test_data\" -DBOOST_TEST_DYN_LINK -W -Wno-sign-compare -I$(top_srcdir) -I$(top_srcdir)/mteval -I$(top_srcdir)/utils -I$(top_srcdir)/klm -I/fast_scratch/simianer/lfpe/nanomsg-0.5-beta/include -I/fast_scratch/simianer/lfpe/cppnanomsg
 
 rule_lexer.cc: rule_lexer.ll
 	$(LEX) -s -CF -8 -o$@ $<

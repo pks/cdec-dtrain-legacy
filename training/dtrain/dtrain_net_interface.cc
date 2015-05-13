@@ -122,6 +122,8 @@ main(int argc, char** argv)
     i++;
 
     cerr << "> done learning, looping" << endl;
+    string done = "done";
+    sock.send(done.c_str(), done.size()+1, 0);
   } // input loop
   
   if (output_fn != "") {

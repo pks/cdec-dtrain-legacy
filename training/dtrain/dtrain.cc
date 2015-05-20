@@ -18,6 +18,7 @@ main(int argc, char** argv)
   const weight_t eta          = conf["learning_rate"].as<weight_t>();
   const weight_t margin       = conf["margin"].as<weight_t>();
   const bool average          = conf["average"].as<bool>();
+  const bool structured       = conf["struct"].as<bool>();
   const weight_t l1_reg       = conf["l1_reg"].as<weight_t>();
   const bool keep             = conf["keep"].as<bool>();
   const string output_fn      = conf["output"].as<string>();
@@ -160,7 +161,10 @@ main(int argc, char** argv)
 
     // get pairs and update
     SparseVector<weight_t> updates;
-    num_up += CollectUpdates(samples, updates, margin);
+    if (structured)
+      num_up += CollectUpdatesStruct(samples, updates);
+    else
+      num_up += CollectUpdates(samples, updates, margin);
     SparseVector<weight_t> lambdas_copy;
     if (l1_reg)
       lambdas_copy = lambdas;

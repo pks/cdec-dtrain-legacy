@@ -59,6 +59,7 @@ dtrain_init(int argc, char** argv, po::variables_map* conf)
     ("N",                 po::value<size_t>()->default_value(4),              "N for BLEU approximation")
     ("input_weights,w",   po::value<string>(),                                      "input weights file")
     ("average,a",         po::value<bool>()->default_value(false),              "output average weights")
+    ("struct,S",          po::value<bool>()->default_value(false),                      "structured SGD")
     ("keep,K",            po::value<bool>()->default_value(false),  "output a weight file per iteration")
     ("output,o",          po::value<string>()->default_value("-"), "output weights file, '-' for STDOUT")
     ("print_weights,P",   po::value<string>()->default_value("EgivenFCoherent SampleCountF CountEF MaxLexFgivenE MaxLexEgivenF IsSingletonF IsSingletonFE Glue WordPenalty PassThrough LanguageModel LanguageModel_OOV"),

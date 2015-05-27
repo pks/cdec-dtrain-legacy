@@ -103,6 +103,7 @@ def stream_extract2(url):
     from nanomsg import Socket, PAIR, PUB
     socket = nanomsg.Socket(nanomsg.PAIR)
     socket.bind(url)
+    sys.stderr.write("sending hello ...\n")
     socket.send("hello")
     while True:
         line = socket.recv()
@@ -118,23 +119,23 @@ def stream_extract2(url):
             if cmd.lower() == 'drop':
                 if online:
                     extractor.drop_ctx(context)
-                    sock.send('drop {}\n'.format(context))
+                    sock.send('drop {}'.format(context))
                 else:
-                    sock.send('Error: online mode not set. Skipping line: {}\n'.format(line.strip()))
+                    sock.send('Error: online mode not set. Skipping line: {}'.format(line.strip()))
         # context ||| sentence ||| grammar_file
         elif len(fields) == 3:
             (context, sentence, grammar_file) = fields
             with (gzip.open if compress else open)(grammar_file, 'w') as output:
                 for rule in extractor.grammar(sentence, context):
                     output.write(str(rule)+'\n')
-            socket.send('{}\n'.format(grammar_file))
+            socket.send('{}'.format(grammar_file))
         # context ||| sentence ||| reference ||| alignment
         elif len(fields) == 4:
             (context, sentence, reference, alignment) = fields
             extractor.add_instance(sentence, reference, alignment, context)
-            socket.send('learn {}\n'.format(context))
+            socket.send('learn {}'.format(context))
         else:
-            socket.send('Error: see README.md for stream mode usage.  Skipping line: {}\n'.format(line.strip()))
+            socket.send('Error: see README.md for stream mode usage.  Skipping line: {}'.format(line.strip()))
     socket.send("off")
     socket.close()
 

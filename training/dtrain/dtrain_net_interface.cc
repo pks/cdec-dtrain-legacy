@@ -117,7 +117,7 @@ main(int argc, char** argv)
     CollectUpdates(samples, updates, margin);
     cerr << "updates size " << updates.size() << endl;
     cerr << "lambdas before " << lambdas << endl;
-    lambdas.plus_eq_v_times_s(updates, 1.0); // FIXME: learning rate?
+    //lambdas.plus_eq_v_times_s(updates, 1.0); // FIXME: learning rate?
     cerr << "lambdas after " << lambdas << endl;
     i++;
 

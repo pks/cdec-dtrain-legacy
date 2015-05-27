@@ -1,12 +1,16 @@
 #!/usr/bin/env ruby
 
 require 'nanomsg'
+require 'trollop'
 
-port = 8888
+conf = Trollop::options do
+  opt :addr, "URL of socket", :type => :string, :short => '-a', :default => "tcp://127.0.0.1:31337"
+end
+
 sock = NanoMsg::PairSocket.new
-addr = "tcp://127.0.0.1:#{port}"
+addr = conf[:addr]
 sock.connect addr
-puts sock.recv
+puts "< got #{sock.recv}"
 
 while true
   line = STDIN.gets

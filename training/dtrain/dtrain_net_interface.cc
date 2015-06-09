@@ -101,7 +101,7 @@ main(int argc, char** argv)
         }
       }
     }
-    
+
     if (!next)
       break;
 
@@ -117,7 +117,7 @@ main(int argc, char** argv)
     CollectUpdates(samples, updates, margin);
     cerr << "updates size " << updates.size() << endl;
     cerr << "lambdas before " << lambdas << endl;
-    //lambdas.plus_eq_v_times_s(updates, 1.0); // FIXME: learning rate?
+    lambdas.plus_eq_v_times_s(updates, 1.0); // FIXME: learning rate?
     cerr << "lambdas after " << lambdas << endl;
     i++;
 
@@ -125,7 +125,7 @@ main(int argc, char** argv)
     string done = "done";
     sock.send(done.c_str(), done.size()+1, 0);
   } // input loop
-  
+
   if (output_fn != "") {
     cerr << "writing final weights to '" << output_fn << "'" << endl;
     lambdas.init_vector(decoder_weights);

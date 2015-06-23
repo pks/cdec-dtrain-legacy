@@ -189,7 +189,8 @@ struct PerSentenceBleuScorer
                         / ((counts.sum_[i] + add)));
     }
 
-    return  BrevityPenalty(hl, rl+1) * exp(sum);
+    //return  BrevityPenalty(hl, rl+1) * exp(sum);
+    return  BrevityPenalty(hl, rl) * exp(sum);
   }
 };
 

@@ -1,5 +1,5 @@
-#ifndef _DTRAIN_SCORE_H_
-#define _DTRAIN_SCORE_H_
+#ifndef _DTRAIN_SCORE_NET_INTERFACE_H_
+#define _DTRAIN_SCORE_NET_INTERFACE_H_
 
 #include "dtrain.h"
 

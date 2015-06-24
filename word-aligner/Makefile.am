@@ -13,4 +13,5 @@ net_fa_LDFLAGS = $(STATIC_FLAGS) /fast_scratch/simianer/lfpe/nanomsg-0.5-beta/li
 
 EXTRA_DIST = aligner.pl ortho-norm support makefiles stemmers
 
-AM_CPPFLAGS = -W -Wall -I$(top_srcdir) -I$(top_srcdir)/utils -I$(top_srcdir)/training -I/fast_scratch/simianer/lfpe/nanomsg-0.5-beta/include
+AM_CPPFLAGS = -W -Wall -I$(top_srcdir) -I$(top_srcdir)/utils -I$(top_srcdir)/training -I/fast_scratch/simianer/lfpe/nanomsg-0.5-beta/include -I/fast_scratch/simianer/lfpe/cppnanomsg
+

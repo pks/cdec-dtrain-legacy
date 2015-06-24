@@ -86,12 +86,12 @@ int main(int argc, char** argv) {
       continue;
     string line(buf, buf+sz);
     if (line == "shutdown") {
-      cerr << "shutting down" << endl;
+      cerr << "[net_fa] shutting down" << endl;
       string shutdown = "off";
       sock.send(shutdown.c_str(), shutdown.size()+1, 0);
       break;
     }
-    cerr << "got '" << line << "'" << endl;
+    cerr << "[net_fa] got '" << line << "'" << endl;
     nn::freemsg(buf);
     vector<WordID> src, trg;
     CorpusTools::ReadLine(line, &src, &trg);
@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
         ss << ' ' << (a_j - 1) << '-' << j;
     }
     string a = ss.str();
-    cerr << "sending " << a << endl;
+    cerr << "[net_fa] sending '" << a << "'" << endl;
     sock.send(a.c_str(), a.size()+1, 0);
   } // loop
 

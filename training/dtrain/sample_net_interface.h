@@ -3,7 +3,7 @@
 
 #include "kbest.h"
 
-#include "score.h"
+#include "score_net_interface.h"
 
 namespace dtrain
 {

@@ -1,5 +1,5 @@
-#ifndef _DTRAIN_SCORE_NET_INTERFACE_H_
-#define _DTRAIN_SCORE_NET_INTERFACE_H_
+#ifndef _DTRAIN_SCORE_H_
+#define _DTRAIN_SCORE_H_
 
 #include "dtrain.h"
 
@@ -153,7 +153,7 @@ struct PerSentenceBleuScorer
       size_t best = numeric_limits<size_t>::max();
       for (auto l: ref_ls) {
         size_t d = abs(hl-l);
-        if (d < best) { 
+        if (d < best) {
           best_idx = i;
           best = d;
         }

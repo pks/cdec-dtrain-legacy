@@ -9,5 +9,5 @@ dtrain_net_LDADD   = ../../decoder/libcdec.a ../../klm/search/libksearch.a ../..
 dtrain_net_interface_SOURCES = dtrain_net_interface.cc dtrain_net_interface.h dtrain.h sample_net_interface.h score_net_interface.h update.h
 dtrain_net_interface_LDADD   = ../../decoder/libcdec.a ../../klm/search/libksearch.a ../../mteval/libmteval.a ../../utils/libutils.a ../../klm/lm/libklm.a ../../klm/util/libklm_util.a ../../klm/util/double-conversion/libklm_util_double.a /fast_scratch/simianer/lfpe/nanomsg-0.5-beta/lib/libnanomsg.so
 
-AM_CPPFLAGS = -W -Wall -Wno-sign-compare -I$(top_srcdir)/utils -I$(top_srcdir)/decoder -I$(top_srcdir)/mteval -I/fast_scratch/simianer/lfpe/nanomsg-0.5-beta/include
+AM_CPPFLAGS = -W -Wall -Wno-sign-compare -I$(top_srcdir)/utils -I$(top_srcdir)/decoder -I$(top_srcdir)/mteval -I/fast_scratch/simianer/lfpe/nanomsg-0.5-beta/include -I/fast_scratch/simianer/lfpe/cppnanomsg
 

@@ -1,5 +1,5 @@
-#ifndef _DTRAIN_NET_H_
-#define _DTRAIN_NET_H_
+#ifndef _DTRAIN_NET_INTERFACE_H_
+#define _DTRAIN_NET_INTERFACE_H_
 
 #include "dtrain.h"
 

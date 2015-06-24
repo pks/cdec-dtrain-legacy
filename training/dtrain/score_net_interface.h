@@ -153,7 +153,7 @@ struct PerSentenceBleuScorer
       size_t best = numeric_limits<size_t>::max();
       for (auto l: ref_ls) {
         size_t d = abs(hl-l);
-        if (d < best) { 
+        if (d < best) {
           best_idx = i;
           best = d;
         }

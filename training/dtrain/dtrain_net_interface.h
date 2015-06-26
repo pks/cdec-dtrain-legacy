@@ -6,6 +6,23 @@
 namespace dtrain
 {
 
+inline void
+weightsToJson(SparseVector<weight_t>& w, ostringstream& os)
+{
+  vector<string> strs;
+  for (typename SparseVector<weight_t>::iterator it=w.begin(),e=w.end(); it!=e; ++it) {
+    ostringstream a;
+    a << "\"" << FD::Convert(it->first) << "\":" << it->second;
+    strs.push_back(a.str());
+  }
+  for (vector<string>::const_iterator it=strs.begin(); it!=strs.end(); it++) {
+    os << *it;
+    if ((it+1) != strs.end())
+      os << ",";
+    os << endl;
+  }
+}
+
 template<typename T>
 inline void
 vectorAsString(SparseVector<T>& v, ostringstream& os)
@@ -39,14 +56,17 @@ dtrain_net_init(int argc, char** argv, po::variables_map* conf)
 {
   po::options_description ini("Configuration File Options");
   ini.add_options()
-    ("decoder_conf,C",   po::value<string>(),                      "configuration file for decoder")
-    ("k",                po::value<size_t>()->default_value(100),              "size of kbest list")
-    ("N",                po::value<size_t>()->default_value(4),          "N for BLEU approximation")
-    ("margin,m",         po::value<weight_t>()->default_value(0.),   "margin for margin perceptron")
-    ("output,o",         po::value<string>()->default_value(""),               "final weights file")
-    ("input_weights,w",  po::value<string>(),                                  "input weights file")
-    ("learning_rate,l",  po::value<weight_t>()->default_value(1.0),                 "learning rate")
-    ("debug_output,d",   po::value<string>()->default_value(""),            "file for debug output");
+    ("decoder_conf,C",         po::value<string>(),                          "configuration file for decoder")
+    ("k",                      po::value<size_t>()->default_value(100),                  "size of kbest list")
+    ("N",                      po::value<size_t>()->default_value(4),              "N for BLEU approximation")
+    ("margin,m",               po::value<weight_t>()->default_value(0.),       "margin for margin perceptron")
+    ("output,o",               po::value<string>()->default_value(""),                   "final weights file")
+    ("input_weights,w",        po::value<string>(),                                      "input weights file")
+    ("learning_rate,l",        po::value<weight_t>()->default_value(1.0),                     "learning rate")
+    ("learning_rate_sparse,l", po::value<weight_t>()->default_value(1.0), "learning rate for sparse features")
+    ("dense_features,D",       po::value<string>()->default_value("EgivenFCoherent SampleCountF CountEF MaxLexFgivenE MaxLexEgivenF IsSingletonF IsSingletonFE Glue WordPenalty PassThrough LanguageModel LanguageModel_OOV"),
+                                                                                             "dense features")
+    ("debug_output,d",   po::value<string>()->default_value(""),                      "file for debug output");
   po::options_description cl("Command Line Options");
   cl.add_options()
     ("conf,c", po::value<string>(), "dtrain configuration file")

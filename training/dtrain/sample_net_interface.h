@@ -22,7 +22,7 @@ struct ScoredKbest : public DecoderObserver
     k_(k), scorer_(scorer), dont_score(false) {}
 
   virtual void
-  NotifyTranslationForest(const SentenceMetadata& smeta, Hypergraph* hg)
+  NotifyTranslationForest(const SentenceMetadata& /*smeta*/, Hypergraph* hg)
   {
     samples_.clear(); effective_sz_ = feature_count_ = 0;
     KBest::KBestDerivations<vector<WordID>, ESentenceTraversal,

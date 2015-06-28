@@ -105,6 +105,7 @@ def stream_extract2(url):
     socket.bind(url)
     sys.stderr.write("[extractor] sending hello ...\n")
     socket.send("hello")
+    default_context = "default_context"
     while True:
         line = socket.recv()
         if line.strip() == "shutdown":
@@ -113,18 +114,25 @@ def stream_extract2(url):
         if not line:
             break
         fields = re.split('\s*\|\|\|\s*', line.strip())
+        # error
+        if len(fields) == 1:
+            socket.send("[extractor] error: can't process input '{}'".format(line.strip()))
         # context ||| cmd
         if len(fields) == 2:
             (context, cmd) = fields
+            assert(context == default_context)
             if cmd.lower() == 'drop':
                 if online:
                     extractor.drop_ctx(context)
-                    sock.send('[extractor] drop {}'.format(context))
+                    socket.send("[extractor] dropping context '{}'".format(context))
                 else:
-                    sock.send('[extractor] Error: online mode not set. Skipping line: {}'.format(line.strip()))
+                    socket.send("[extractor] error: online mode not set, skipping input: {}".format(line.strip()))
+            else:
+              socket.send("[extractor] don't know command '{}'".format(cmd))
         # context ||| sentence ||| grammar_file
         elif len(fields) == 3:
             (context, sentence, grammar_file) = fields
+            assert(context == default_context)
             with (gzip.open if compress else open)(grammar_file, 'w') as output:
                 for rule in extractor.grammar(sentence, context):
                     output.write(str(rule)+'\n')
@@ -132,10 +140,11 @@ def stream_extract2(url):
         # context ||| sentence ||| reference ||| alignment
         elif len(fields) == 4:
             (context, sentence, reference, alignment) = fields
+            assert(context == default_context)
             extractor.add_instance(sentence, reference, alignment, context)
-            socket.send('[extractor] learn (context: {})'.format(context))
+            socket.send("[extractor] learning (context: '{}')".format(context))
         else:
-            socket.send('[extractor] Error: see README.md for stream mode usage.  Skipping line: {}'.format(line.strip()))
+            socket.send("[extractor] error, skipping input: '{}'".format(line.strip()))
     socket.send("off")
     socket.close()
 

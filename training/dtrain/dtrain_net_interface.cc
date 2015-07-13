@@ -218,7 +218,7 @@ main(int argc, char** argv)
 
     // debug --
     WriteFile f(debug_fn);
-    *f << debug_output.str();
+    f.get() << debug_output.str();
     // -- debug
 
     // write current weights

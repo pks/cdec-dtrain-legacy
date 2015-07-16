@@ -10,7 +10,8 @@ main(int argc, char** argv)
 {
   // get configuration
   po::variables_map conf;
-  dtrain_init(argc, argv, &conf);
+  if (!dtrain_init(argc, argv, &conf))
+    return 1;
   const size_t k              = conf["k"].as<size_t>();
   const string score_name     = conf["score"].as<string>();
   const size_t N              = conf["N"].as<size_t>();
@@ -66,7 +67,7 @@ main(int argc, char** argv)
 
   cerr << _p4;
   // output configuration
-  cerr << "dtrain" << endl << "Parameters:" << endl;
+  cerr << "Parameters:" << endl;
   cerr << setw(25) << "k " << k << endl;
   cerr << setw(25) << "score " << "'" << score_name << "'" << endl;
   cerr << setw(25) << "N " << N << endl;

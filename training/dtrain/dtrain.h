@@ -65,12 +65,12 @@ dtrain_init(int argc, char** argv, po::variables_map* conf)
                                                          "list of weights to print after each iteration");
   po::options_description clopts("Command Line Options");
   clopts.add_options()
-    ("conf,c", po::value<string>(),                    "dtrain configuration file")
-    ("help,h", po::bool_switch()->default_value(false),          "display options");
+    ("conf,c", po::value<string>(), "dtrain configuration file")
+    ("help,h", po::bool_switch(),             "display options");
   opts.add(clopts);
   po::store(parse_command_line(argc, argv, opts), *conf);
   cerr << "dtrain" << endl << endl;
-  if (conf->count("help")) {
+  if ((*conf)["help"].as<bool>()) {
     cerr << opts << endl;
 
     return false;

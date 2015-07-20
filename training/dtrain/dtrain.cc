@@ -68,12 +68,14 @@ main(int argc, char** argv)
   cerr << _p4;
   // output configuration
   cerr << "Parameters:" << endl;
+  cerr << setw(25) << "bitext " << "'" << input_fn << "'" << endl;
   cerr << setw(25) << "k " << k << endl;
   cerr << setw(25) << "score " << "'" << score_name << "'" << endl;
   cerr << setw(25) << "N " << N << endl;
   cerr << setw(25) << "T " << T << endl;
   cerr << setw(25) << "learning rate " << eta << endl;
   cerr << setw(25) << "margin " << margin << endl;
+  cerr << setw(25) << "average " << average << endl;
   cerr << setw(25) << "l1 reg " << l1_reg << endl;
   cerr << setw(25) << "decoder conf " << "'"
        << conf["decoder_conf"].as<string>() << "'" << endl;

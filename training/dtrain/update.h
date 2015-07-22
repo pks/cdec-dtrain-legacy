@@ -10,11 +10,32 @@ _cmp(ScoredHyp a, ScoredHyp b)
   return a.gold > b.gold;
 }
 
+bool
+_cmpHope(ScoredHyp a, ScoredHyp b)
+{
+  return (a.model+a.gold) > (b.model+b.gold);
+}
+
+bool
+_cmpFear(ScoredHyp a, ScoredHyp b)
+{
+  return (a.model-a.gold) > (b.model-b.gold);
+}
+
 inline bool
 _good(ScoredHyp& a, ScoredHyp& b, weight_t margin)
 {
   if ((a.model-b.model)>margin
       || a.gold==b.gold)
+    return true;
+
+  return false;
+}
+
+inline bool
+_goodS(ScoredHyp& a, ScoredHyp& b)
+{
+  if (a.gold==b.gold)
     return true;
 
   return false;
@@ -54,6 +75,23 @@ CollectUpdates(vector<ScoredHyp>* s,
   }
 
   return num_up;
+}
+
+inline size_t
+CollectUpdatesStruct(vector<ScoredHyp>* s,
+                     SparseVector<weight_t>& updates,
+                     weight_t unused=-1)
+{
+  // hope
+  sort(s->begin(), s->end(), _cmpHope);
+  ScoredHyp hope = (*s)[0];
+  // fear
+  sort(s->begin(), s->end(), _cmpFear);
+  ScoredHyp fear = (*s)[0];
+  if (!_goodS(hope, fear))
+    updates += hope.f - fear.f;
+
+  return updates.size();
 }
 
 } // namespace

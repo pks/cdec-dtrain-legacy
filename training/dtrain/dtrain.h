@@ -60,6 +60,7 @@ dtrain_init(int argc, char** argv, po::variables_map* conf)
     ("input_weights,w",   po::value<string>(),                                      "input weights file")
     ("average,a",         po::bool_switch()->default_value(true),               "output average weights")
     ("keep,K",            po::bool_switch()->default_value(false),  "output a weight file per iteration")
+    ("struct,S",          po::bool_switch()->default_value(false),       "structured SGD with hope/fear")
     ("output,o",          po::value<string>()->default_value("-"), "output weights file, '-' for STDOUT")
     ("print_weights,P",   po::value<string>()->default_value("EgivenFCoherent SampleCountF CountEF MaxLexFgivenE MaxLexEgivenF IsSingletonF IsSingletonFE Glue WordPenalty PassThrough LanguageModel LanguageModel_OOV"),
                                                          "list of weights to print after each iteration");

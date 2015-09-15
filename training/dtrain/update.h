@@ -94,6 +94,56 @@ CollectUpdatesStruct(vector<ScoredHyp>* s,
   return updates.size();
 }
 
+inline void
+OutputKbest(vector<ScoredHyp>* s)
+{
+  sort(s->begin(), s->end(), _cmp);
+  size_t i = 0;
+  for (auto k: *s) {
+    cout << i << "\t" << k.gold << "\t" << k.model << " \t" << k.f << endl;
+    i++;
+  }
+}
+
+inline void
+OutputMultipartitePairs(vector<ScoredHyp>* s,
+                               weight_t margin=0.,
+                               bool all=true)
+{
+  size_t sz = s->size();
+  sort(s->begin(), s->end(), _cmp);
+  size_t sep = round(sz*0.1);
+  for (size_t i = 0; i < sep; i++) {
+    for (size_t j = sep; j < sz; j++) {
+      if (!all && _good((*s)[i], (*s)[j], margin))
+        continue;
+      cout << (*s)[i].f-(*s)[j].f << endl;
+    }
+  }
+  size_t sep_lo = sz-sep;
+  for (size_t i = sep; i < sep_lo; i++) {
+    for (size_t j = sep_lo; j < sz; j++) {
+      if (!all && _good((*s)[i], (*s)[j], margin))
+        continue;
+      cout << (*s)[i].f-(*s)[j].f << endl;
+    }
+  }
+}
+
+inline void
+OutputAllPairs(vector<ScoredHyp>* s)
+{
+  size_t sz = s->size();
+  sort(s->begin(), s->end(), _cmp);
+  for (size_t i = 0; i < sz-1; i++) {
+    for (size_t j = i+1; j < sz; j++) {
+      if ((*s)[i].gold == (*s)[j].gold)
+        continue;
+      cout << (*s)[i].f-(*s)[j].f << endl;
+    }
+  }
+}
+
 } // namespace
 
 #endif

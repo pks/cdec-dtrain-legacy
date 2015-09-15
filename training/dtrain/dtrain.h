@@ -48,22 +48,24 @@ dtrain_init(int argc, char** argv, po::variables_map* conf)
 {
   po::options_description opts("Configuration File Options");
   opts.add_options()
-    ("bitext,b",          po::value<string>(),                                                  "bitext")
-    ("decoder_conf,C",    po::value<string>(),                          "configuration file for decoder")
-    ("iterations,T",      po::value<size_t>()->default_value(15),   "number of iterations T (per shard)")
-    ("k",                 po::value<size_t>()->default_value(100),                  "size of kbest list")
-    ("learning_rate,l",   po::value<weight_t>()->default_value(0.00001),                 "learning rate")
-    ("l1_reg,r",          po::value<weight_t>()->default_value(0.),         "l1 regularization strength")
-    ("margin,m",          po::value<weight_t>()->default_value(1.0),      "margin for margin perceptron")
-    ("score,s",           po::value<string>()->default_value("chiang"),      "per-sentence BLEU approx.")
-    ("N",                 po::value<size_t>()->default_value(4),              "N for BLEU approximation")
-    ("input_weights,w",   po::value<string>(),                                      "input weights file")
-    ("average,a",         po::bool_switch()->default_value(true),               "output average weights")
-    ("keep,K",            po::bool_switch()->default_value(false),  "output a weight file per iteration")
-    ("struct,S",          po::bool_switch()->default_value(false),       "structured SGD with hope/fear")
-    ("output,o",          po::value<string>()->default_value("-"), "output weights file, '-' for STDOUT")
-    ("print_weights,P",   po::value<string>()->default_value("EgivenFCoherent SampleCountF CountEF MaxLexFgivenE MaxLexEgivenF IsSingletonF IsSingletonFE Glue WordPenalty PassThrough LanguageModel LanguageModel_OOV"),
-                                                         "list of weights to print after each iteration");
+    ("bitext,b",           po::value<string>(),                                                      "bitext")
+    ("decoder_conf,C",     po::value<string>(),                              "configuration file for decoder")
+    ("iterations,T",       po::value<size_t>()->default_value(15),       "number of iterations T (per shard)")
+    ("k",                  po::value<size_t>()->default_value(100),                      "size of kbest list")
+    ("learning_rate,l",    po::value<weight_t>()->default_value(0.00001),                     "learning rate")
+    ("l1_reg,r",           po::value<weight_t>()->default_value(0.),             "l1 regularization strength")
+    ("margin,m",           po::value<weight_t>()->default_value(1.0),          "margin for margin perceptron")
+    ("score,s",            po::value<string>()->default_value("chiang"),          "per-sentence BLEU approx.")
+    ("N",                  po::value<size_t>()->default_value(4),                  "N for BLEU approximation")
+    ("input_weights,w",    po::value<string>(),                                          "input weights file")
+    ("average,a",          po::bool_switch()->default_value(true),                   "output average weights")
+    ("keep,K",             po::bool_switch()->default_value(false),      "output a weight file per iteration")
+    ("struct,S",           po::bool_switch()->default_value(false),           "structured SGD with hope/fear")
+    ("output,o",           po::value<string>()->default_value("-"),     "output weights file, '-' for STDOUT")
+    ("disable_learning,X", po::bool_switch()->default_value(false),                        "disable learning")
+    ("output_data,D",      po::value<string>()->default_value(""), "output data to STDOUT; arg. is 'kbest', 'default' or 'all'")
+    ("print_weights,P",    po::value<string>()->default_value("EgivenFCoherent SampleCountF CountEF MaxLexFgivenE MaxLexEgivenF IsSingletonF IsSingletonFE Glue WordPenalty PassThrough LanguageModel LanguageModel_OOV"),
+                                                             "list of weights to print after each iteration");
   po::options_description clopts("Command Line Options");
   clopts.add_options()
     ("conf,c", po::value<string>(), "dtrain configuration file")
@@ -92,6 +94,15 @@ dtrain_init(int argc, char** argv, po::variables_map* conf)
     cerr << opts << endl;
 
     return false;
+  }
+  if ((*conf)["output_data"].as<string>() != "") {
+    if ((*conf)["output_data"].as<string>() != "kbest" &&
+        (*conf)["output_data"].as<string>() != "default" &&
+        (*conf)["output_data"].as<string>() != "all") {
+      cerr << "Wrong 'output_data' argument: ";
+      cerr << (*conf)["output_data"].as<string>() << endl;
+      return false;
+    }
   }
 
   return true;

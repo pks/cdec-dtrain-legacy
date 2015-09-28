@@ -27,6 +27,7 @@ main(int argc, char** argv)
   vector<string> dense_features;
   boost::split(dense_features, conf["dense_features"].as<string>(),
                boost::is_any_of(" "));
+  const bool output_derivation = conf["output_derivation"].as<bool>();
 
   // setup decoder
   register_feature_functions();
@@ -125,7 +126,11 @@ main(int argc, char** argv)
           vector<ScoredHyp>* samples = observer->GetSamples();
           ostringstream os;
           cerr << "[dtrain] 1best features " << (*samples)[0].f << endl;
-          PrintWordIDVec((*samples)[0].w, os);
+          if (output_derivation) {
+            os << observer->GetViterbiTreeString() << endl;
+          } else {
+            PrintWordIDVec((*samples)[0].w, os);
+          }
           sock.send(os.str().c_str(), os.str().size()+1, 0);
           cerr << "[dtrain] done translating, looping again" << endl;
           continue;

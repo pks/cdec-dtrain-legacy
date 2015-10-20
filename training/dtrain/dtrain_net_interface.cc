@@ -127,7 +127,7 @@ main(int argc, char** argv)
           ostringstream os;
           cerr << "[dtrain] 1best features " << (*samples)[0].f << endl;
           if (output_derivation) {
-            os << observer->GetViterbiTreeString() << endl;
+            os << observer->GetViterbiTreeStr() << endl;
           } else {
             PrintWordIDVec((*samples)[0].w, os);
           }

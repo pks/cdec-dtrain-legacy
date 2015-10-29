@@ -55,7 +55,8 @@ main(int argc, char** argv)
   cerr << setw(25) << "margin " << margin << endl;
   cerr << setw(25) << "decoder conf " << "'"
        << conf["decoder_conf"].as<string>() << "'" << endl;
-  cerr << setw(25) << "output " << output_fn << endl;
+  cerr << setw(25) << "output " << "'" <<  output_fn << "'" << endl;
+  cerr << setw(25) << "debug " << "'" << debug_fn << "'" << endl;
 
   // setup socket
   nn::socket sock(AF_SP, NN_PAIR);
@@ -224,6 +225,7 @@ main(int argc, char** argv)
     // debug --
     WriteFile f(debug_fn);
     f.get() << debug_output.str();
+    f.get() << std::flush;
     // -- debug
 
     // write current weights

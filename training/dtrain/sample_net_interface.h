@@ -17,7 +17,7 @@ struct ScoredKbest : public DecoderObserver
   vector<Ngrams>* ref_ngs_;
   vector<size_t>* ref_ls_;
   bool dont_score;
-  string viterbiTreeStr_;
+  string viterbiTreeStr_, viterbiRules_;
 
   ScoredKbest(const size_t k, PerSentenceBleuScorer* scorer) :
     k_(k), scorer_(scorer), dont_score(false) {}
@@ -44,6 +44,9 @@ struct ScoredKbest : public DecoderObserver
       effective_sz_++;
       feature_count_ += h.f.size();
       viterbiTreeStr_ = hg->show_viterbi_tree(false);
+      ostringstream ss;
+      ViterbiRules(*hg, &ss);
+      viterbiRules_ = ss.str();
     }
   }
 
@@ -56,6 +59,7 @@ struct ScoredKbest : public DecoderObserver
   inline size_t GetFeatureCount() { return feature_count_; }
   inline size_t GetSize() { return effective_sz_; }
   inline string GetViterbiTreeStr() { return viterbiTreeStr_; }
+  inline string GetViterbiRules() { return viterbiRules_; }
 };
 
 } // namespace

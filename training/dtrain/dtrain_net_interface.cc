@@ -28,6 +28,7 @@ main(int argc, char** argv)
   boost::split(dense_features, conf["dense_features"].as<string>(),
                boost::is_any_of(" "));
   const bool output_derivation = conf["output_derivation"].as<bool>();
+  const bool output_rules      = conf["output_rules"].as<bool>();
 
   // setup decoder
   register_feature_functions();
@@ -131,6 +132,9 @@ main(int argc, char** argv)
             os << observer->GetViterbiTreeStr() << endl;
           } else {
             PrintWordIDVec((*samples)[0].w, os);
+          }
+          if (output_rules) {
+            os << observer->GetViterbiRules() << endl;
           }
           sock.send(os.str().c_str(), os.str().size()+1, 0);
           cerr << "[dtrain] done translating, looping again" << endl;

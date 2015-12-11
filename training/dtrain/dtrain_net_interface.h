@@ -63,7 +63,7 @@ dtrain_net_init(int argc, char** argv, po::variables_map* conf)
     ("output,o",               po::value<string>()->default_value(""),                   "final weights file")
     ("input_weights,w",        po::value<string>(),                                      "input weights file")
     ("learning_rate,l",        po::value<weight_t>()->default_value(1.0),                     "learning rate")
-    ("learning_rate_sparse,l", po::value<weight_t>()->default_value(1.0), "learning rate for sparse features")
+    ("learning_rate_sparse,l", po::value<weight_t>()->default_value(0.00001), "learning rate for sparse features")
     ("output_derivation,E",    po::bool_switch()->default_value(false),  "output derivation, not viterbi str")
     ("output_rules,R",    po::bool_switch()->default_value(false),                        "also output rules")
     ("dense_features,D",       po::value<string>()->default_value("EgivenFCoherent SampleCountF CountEF MaxLexFgivenE MaxLexEgivenF IsSingletonF IsSingletonFE Glue WordPenalty PassThrough LanguageModel LanguageModel_OOV Shape_S01111_T11011 Shape_S11110_T11011 Shape_S11100_T11000 Shape_S01110_T01110 Shape_S01111_T01111 Shape_S01100_T11000 Shape_S10000_T10000 Shape_S11100_T11100 Shape_S11110_T11110 Shape_S11110_T11010 Shape_S01100_T11100 Shape_S01000_T01000 Shape_S01010_T01010 Shape_S01111_T01011 Shape_S01100_T01100 Shape_S01110_T11010 Shape_S11000_T11000 Shape_S11000_T01100 IsSupportedOnline ForceRule"),

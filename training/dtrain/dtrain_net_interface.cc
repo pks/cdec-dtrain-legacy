@@ -143,7 +143,7 @@ main(int argc, char** argv)
           cerr << "[dtrain] learning ..." << endl;
           source = parts[0];
           // debug --
-          debug_output << "\"source\":\"" <<  source.substr(source.find_first_of(">")+1, source.find_last_of("<")-3) <<  "\"," << endl;
+          debug_output << "\"source\":\"" <<  source.substr(source.find_first_of(">")+2, source.find_last_of(">")-6) <<  "\"," << endl;
           debug_output << "\"target\":\"" << parts[1] <<  "\"," << endl;
           // -- debug
           parts.erase(parts.begin());
@@ -198,11 +198,14 @@ main(int argc, char** argv)
     // get pairs and update
     SparseVector<weight_t> updates;
     size_t num_up = CollectUpdates(samples, updates, margin);
+    debug_output << "\"1best_features\":\"" << (*samples)[0].f << "\"," << endl;
+    debug_output << "\"update_raw\":\"" << updates << "\"," << endl;
     updates *= eta_sparse; // apply learning rate for sparse features
     for (auto feat: dense_features) { // apply learning rate for dense features
       updates[FD::Convert(feat)] /= eta_sparse;
       updates[FD::Convert(feat)] *= eta;
     }
+    debug_output << "\"update\":\"" << updates << "\"," << endl;
     // debug --
     debug_output << "\"num_up\":" << num_up << "," << endl;
     debug_output << "\"updated_features\":" << updates.size() << "," << endl;

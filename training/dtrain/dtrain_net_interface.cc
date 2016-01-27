@@ -18,8 +18,6 @@ main(int argc, char** argv)
     exit(1); // something is wrong
   const size_t k              = conf["k"].as<size_t>();
   const size_t N              = conf["N"].as<size_t>();
-  weight_t eta                = conf["learning_rate"].as<weight_t>();
-  weight_t eta_sparse         = conf["learning_rate_sparse"].as<weight_t>();
   const weight_t margin       = conf["margin"].as<weight_t>();
   const string master_addr    = conf["addr"].as<string>();
   const string output_fn      = conf["output"].as<string>();
@@ -46,18 +44,37 @@ main(int argc, char** argv)
     Weights::InitSparseVector(decoder_weights, &original_lambdas);
   }
 
+  // learning rates
+  SparseVector<weight_t> learning_rates, original_learning_rates;
+  weight_t learning_rate_R, original_learning_rate_R;
+  weight_t learning_rate_RB, original_learning_rate_RB;
+  weight_t learning_rate_Shape, original_learning_rate_Shape;
+  vector<weight_t> l;
+  Weights::InitFromFile(conf["learning_rates"].as<string>(), &l);
+  Weights::InitSparseVector(l, &learning_rates);
+  original_learning_rates      = learning_rates;
+  learning_rate_R              = conf["learning_rate_R"].as<weight_t>();
+  original_learning_rate_R     = learning_rate_R;
+  learning_rate_RB             = conf["learning_rate_RB"].as<weight_t>();
+  original_learning_rate_RB    = learning_rate_RB;
+  learning_rate_Shape          = conf["learning_rate_Shape"].as<weight_t>();
+  original_learning_rate_Shape = learning_rate_Shape;
+
   cerr << _p4;
   // output configuration
   cerr << "dtrain_net_interface" << endl << "Parameters:" << endl;
   cerr << setw(25) << "k " << k << endl;
   cerr << setw(25) << "N " << N << endl;
-  cerr << setw(25) << "eta " << eta << endl;
-  cerr << setw(25) << "eta (sparse) " << eta_sparse << endl;
   cerr << setw(25) << "margin " << margin << endl;
   cerr << setw(25) << "decoder conf " << "'"
        << conf["decoder_conf"].as<string>() << "'" << endl;
   cerr << setw(25) << "output " << "'" <<  output_fn << "'" << endl;
-  cerr << setw(25) << "debug " << "'" << debug_fn << "'" << endl;
+  cerr << setw(25) << "debug "  << "'" << debug_fn   << "'" << endl;
+  cerr << setw(25) << "learning rates "      << "'"
+       << conf["learning_rates"].as<string>() << "'" << endl;
+  cerr << setw(25) << "learning rate R "     << learning_rate_R     << endl;
+  cerr << setw(25) << "learning rate RB "    << learning_rate_RB    << endl;
+  cerr << setw(25) << "learning rate Shape " << learning_rate_Shape << endl;
 
   // setup socket
   nn::socket sock(AF_SP, NN_PAIR);
@@ -89,23 +106,62 @@ main(int argc, char** argv)
       const string in(buf, buf+sz);
       nn::freemsg(buf);
       cerr << "[dtrain] got input '" << in << "'" << endl;
-      if        (boost::starts_with(in, "set_learning_rate")) { // set learning rate
+      if (boost::starts_with(in, "set_learning_rates")) { // set learning rates
         stringstream ss(in);
-        string x; weight_t w;
-        ss >> x; ss >> w;
-        cerr << "[dtrain] setting (dense) learning rate to " << w << " (was: " << eta << ")" << endl;
-        eta = w;
+        string _,name; weight_t w;
+        ss >> _; ss >> name; ss >> w;
+        weight_t before = 0;
+        ostringstream long_name;
+        if (name == "R") {
+          before = learning_rate_R;
+          learning_rate_R = w;
+          long_name << "rule id feature group";
+        } else if (name == "RB") {
+          before = learning_rate_RB;
+          learning_rate_RB = w;
+          long_name << "rule bigram feature group";
+        } else if (name == "Shape") {
+          before = learning_rate_Shape;
+          learning_rate_Shape = w;
+          long_name << "rule shape feature group";
+        } else {
+          unsigned fid = FD::Convert(name);
+          before = learning_rates[fid];
+          learning_rates[fid] = w;
+          long_name << "feature '" << name << "'";
+        }
+        ostringstream o;
+        o << "set learning rate for " << long_name.str() << " to " << w
+          << " (was: " << before << ")" << endl;
+        string s = o.str();
+        cerr << "[dtrain] " << s;
+        cerr << "[dtrain] done, looping again" << endl;
+        sock.send(s.c_str(), s.size()+1, 0);
+        continue;
+      } else if (boost::starts_with(in, "reset_learning_rates")) {
+        cerr << "[dtrain] resetting learning rates" << endl;
+        learning_rates = original_learning_rates;
+        learning_rate_R = original_learning_rate_R;
+        learning_rate_RB = original_learning_rate_RB;
+        learning_rate_Shape = original_learning_rate_Shape;
         cerr << "[dtrain] done, looping again" << endl;
         sock.send(done.c_str(), done.size()+1, 0);
         continue;
-      } else if (boost::starts_with(in, "set_sparse_learning_rate")) { // set sparse learning rate
+      } else if (boost::starts_with(in, "set_weights")) { // set learning rates
         stringstream ss(in);
-        string x; weight_t w;
-        ss >> x; ss >> w;
-        cerr << "[dtrain] setting sparse learning rate to " << w << " (was: " << eta_sparse << ")" << endl;
-        eta_sparse = w;
+        string _,name; weight_t w;
+        ss >> _; ss >> name; ss >> w;
+        weight_t before = 0;
+        ostringstream o;
+        unsigned fid = FD::Convert(name);
+        before = lambdas[fid];
+        lambdas[fid] = w;
+        o << "set weight for feature '" << name << "'"
+          << "' to " << w << " (was: " << before << ")" << endl;
+        string s = o.str();
+        cerr << "[dtrain] " << s;
         cerr << "[dtrain] done, looping again" << endl;
-        sock.send(done.c_str(), done.size()+1, 0);
+        sock.send(s.c_str(), s.size()+1, 0);
         continue;
       } else if (boost::starts_with(in, "reset_weights")) { // reset weights
         cerr << "[dtrain] resetting weights" << endl;
@@ -143,7 +199,9 @@ main(int argc, char** argv)
           cerr << "[dtrain] learning ..." << endl;
           source = parts[0];
           // debug --
-          debug_output << "\"source\":\"" <<  source.substr(source.find_first_of(">")+2, source.find_last_of(">")-6) <<  "\"," << endl;
+          debug_output << "\"source\":\""
+                       << source.substr(source.find_first_of(">")+2, source.find_last_of(">")-6)
+                       <<  "\"," << endl;
           debug_output << "\"target\":\"" << parts[1] <<  "\"," << endl;
           // -- debug
           parts.erase(parts.begin());
@@ -176,7 +234,8 @@ main(int argc, char** argv)
     debug_output << "\"kbest\":[" << endl;
     size_t h = 0;
     for (auto s: *samples) {
-      debug_output << "\"" << s.gold << " ||| " << s.model << " ||| " << s.rank << " ||| ";
+      debug_output << "\"" << s.gold << " ||| "
+                           << s.model << " ||| " << s.rank << " ||| ";
       for (auto o: s.f)
         debug_output << FD::Convert(o.first) << "=" << o.second << " ";
       debug_output << " ||| ";
@@ -191,37 +250,59 @@ main(int argc, char** argv)
     debug_output << "]," << endl;
     debug_output << "\"samples_size\":" << samples->size() << "," << endl;
     debug_output << "\"weights_before\":{" << endl;
-    weightsToJson(lambdas, debug_output);
+    sparseVectorToJson(lambdas, debug_output);
     debug_output << "}," << endl;
     // -- debug
 
-    // get pairs and update
+    // get pairs
     SparseVector<weight_t> updates;
     size_t num_up = CollectUpdates(samples, updates, margin);
+
+    // debug --
     debug_output << "\"1best_features\":\"" << (*samples)[0].f << "\"," << endl;
     debug_output << "\"update_raw\":\"" << updates << "\"," << endl;
-    updates *= eta_sparse; // apply learning rate for sparse features
-    for (auto feat: dense_features) { // apply learning rate for dense features
-      updates[FD::Convert(feat)] /= eta_sparse;
-      updates[FD::Convert(feat)] *= eta;
+    // -- debug
+
+    // update
+    for (auto it: updates) {
+      string fname = FD::Convert(it.first);
+      unsigned k = it.first;
+      weight_t v = it.second;
+      if (learning_rates.find(it.first) != learning_rates.end()) {
+        updates[k] = learning_rates[k]*v;
+      } else {
+        if (boost::starts_with(fname, "R:")) {
+          updates[k] = learning_rate_R*v;
+        } else if (boost::starts_with(fname, "RBS:") ||
+                   boost::starts_with(fname, "RBT:")) {
+          updates[k] = learning_rate_RB*v;
+        } else if (boost::starts_with(fname, "Shape_")) {
+          updates[k] = learning_rate_Shape*v;
+        }
+      }
     }
-    debug_output << "\"update\":\"" << updates << "\"," << endl;
+    lambdas.plus_eq_v_times_s(updates, 1.0);
+    i++;
+
     // debug --
+    debug_output << "\"update\":\"" << updates << "\"," << endl;
     debug_output << "\"num_up\":" << num_up << "," << endl;
     debug_output << "\"updated_features\":" << updates.size() << "," << endl;
-    debug_output << "\"learning_rate\":" << eta << "," << endl;
-    debug_output << "\"learning_rate_sparse\":" << eta_sparse << "," << endl;
+    debug_output << "\"learning_rate_R\":" << learning_rate_R << "," << endl;
+    debug_output << "\"learning_rate_RB\":" << learning_rate_R << "," << endl;
+    debug_output << "\"learning_rate_Shape\":" << learning_rate_R << "," << endl;
+    debug_output << "\"learning_rates\":{" << endl;
+    sparseVectorToJson(learning_rates, debug_output);
+    debug_output << "}," << endl;
     debug_output << "\"best_match\":\"";
     PrintWordIDVec((*samples)[0].w, debug_output);
     debug_output << "\"," << endl;
     debug_output << "\"best_match_score\":" << (*samples)[0].gold << "," << endl ;
     // -- debug
-    lambdas.plus_eq_v_times_s(updates, 1.0);
-    i++;
 
     // debug --
     debug_output << "\"weights_after\":{" << endl;
-    weightsToJson(lambdas, debug_output);
+    sparseVectorToJson(lambdas, debug_output);
     debug_output << "}" << endl;
     debug_output << "}" << endl;
     // -- debug

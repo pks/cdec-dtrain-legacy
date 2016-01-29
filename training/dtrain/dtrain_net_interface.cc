@@ -255,39 +255,39 @@ main(int argc, char** argv)
     // -- debug
 
     // get pairs
-    SparseVector<weight_t> updates;
-    size_t num_up = CollectUpdates(samples, updates, margin);
+    SparseVector<weight_t> update;
+    size_t num_up = CollectUpdates(samples, update, margin);
 
     // debug --
     debug_output << "\"1best_features\":\"" << (*samples)[0].f << "\"," << endl;
-    debug_output << "\"update_raw\":\"" << updates << "\"," << endl;
+    debug_output << "\"update_raw\":\"" << update << "\"," << endl;
     // -- debug
 
     // update
-    for (auto it: updates) {
+    for (auto it: update) {
       string fname = FD::Convert(it.first);
       unsigned k = it.first;
       weight_t v = it.second;
       if (learning_rates.find(it.first) != learning_rates.end()) {
-        updates[k] = learning_rates[k]*v;
+        update[k] = learning_rates[k]*v;
       } else {
         if (boost::starts_with(fname, "R:")) {
-          updates[k] = learning_rate_R*v;
+          update[k] = learning_rate_R*v;
         } else if (boost::starts_with(fname, "RBS:") ||
                    boost::starts_with(fname, "RBT:")) {
-          updates[k] = learning_rate_RB*v;
+          update[k] = learning_rate_RB*v;
         } else if (boost::starts_with(fname, "Shape_")) {
-          updates[k] = learning_rate_Shape*v;
+          update[k] = learning_rate_Shape*v;
         }
       }
     }
-    lambdas.plus_eq_v_times_s(updates, 1.0);
+    lambdas += update;
     i++;
 
     // debug --
-    debug_output << "\"update\":\"" << updates << "\"," << endl;
+    debug_output << "\"update\":\"" << update << "\"," << endl;
     debug_output << "\"num_up\":" << num_up << "," << endl;
-    debug_output << "\"updated_features\":" << updates.size() << "," << endl;
+    debug_output << "\"updated_features\":" << update.size() << "," << endl;
     debug_output << "\"learning_rate_R\":" << learning_rate_R << "," << endl;
     debug_output << "\"learning_rate_RB\":" << learning_rate_R << "," << endl;
     debug_output << "\"learning_rate_Shape\":" << learning_rate_R << "," << endl;

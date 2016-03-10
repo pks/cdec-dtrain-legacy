@@ -87,6 +87,8 @@ main(int argc, char** argv)
 
   string done = "done";
 
+  vector<ScoredHyp>* samples;
+
   size_t i = 0;
   while(true)
   {
@@ -214,7 +216,7 @@ main(int argc, char** argv)
           observer->dont_score = true;
           decoder.Decode(parts[1], observer);
           observer->dont_score = false;
-          vector<ScoredHyp>* samples = observer->GetSamples();
+          samples = observer->GetSamples();
           ostringstream os;
           cerr << "[dtrain] 1best features " << (*samples)[0].f << endl;
           if (output_derivation) {
@@ -247,6 +249,10 @@ main(int argc, char** argv)
             refs.emplace_back(MakeNgrams(r, N));
             rsz.push_back(r.size());
           }
+
+          //vector<ScoredHyp>* samples;
+          for (auto s: *samples)
+            s.gold = observer->scorer_->Score(s.w, refs, rsz);
         }
       }
     }
@@ -256,9 +262,9 @@ main(int argc, char** argv)
 
     // decode
     lambdas.init_vector(&decoder_weights);
-    observer->SetReference(refs, rsz);
-    decoder.Decode(source, observer);
-    vector<ScoredHyp>* samples = observer->GetSamples();
+    //observer->SetReference(refs, rsz);
+    //decoder.Decode(source, observer);
+    //vector<ScoredHyp>* samples = observer->GetSamples();
 
     // debug --
     debug_output << "\"1best\":\"";

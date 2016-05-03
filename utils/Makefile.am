@@ -100,7 +100,7 @@ atools_LDFLAGS = $(STATIC_FLAGS)
 
 atools_net_SOURCES = atools_net.cc nn.hpp
 atools_net_LDADD = libutils.a
-atools_net_LDFLAGS = $(STATIC_FLAGS) /fast_scratch/simianer/lfpe/lib/nanomsg-0.5-beta/lib/libnanomsg.so
+atools_net_LDFLAGS = $(STATIC_FLAGS) /srv/postedit/lib/nanomsg-0.5-beta/lib/libnanomsg.so
 
 dedup_corpus_SOURCES = dedup_corpus.cc
 dedup_corpus_LDADD = libutils.a
@@ -127,5 +127,5 @@ stringlib_test_LDADD = libutils.a $(BOOST_UNIT_TEST_FRAMEWORK_LDFLAGS) $(BOOST_U
 
 ################################################################
 # do NOT NOT NOT add any other -I includes NO NO NO NO NO ######
-AM_CPPFLAGS = -DBOOST_TEST_DYN_LINK -W -Wall -I. -I$(top_srcdir) -DTEST_DATA=\"$(top_srcdir)/utils/test_data\" -I/fast_scratch/simianer/lfpe/lib/nanomsg-0.5-beta/include -I/fast_scratch/simianer/lfpe/lib/cppnanomsg
+AM_CPPFLAGS = -DBOOST_TEST_DYN_LINK -W -Wall -I. -I$(top_srcdir) -DTEST_DATA=\"$(top_srcdir)/utils/test_data\" -I/srv/postedit/lib/nanomsg-0.5-beta/include -I/srv/postedit/lib/cppnanomsg
 ################################################################

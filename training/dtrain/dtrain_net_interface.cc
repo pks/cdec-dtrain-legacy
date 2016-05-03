@@ -250,9 +250,8 @@ main(int argc, char** argv)
             rsz.push_back(r.size());
           }
 
-          //vector<ScoredHyp>* samples;
-          for (auto s: *samples)
-            s.gold = observer->scorer_->Score(s.w, refs, rsz);
+          for (size_t r = 0; r < samples->size(); r++)
+            (*samples)[r].gold = observer->scorer_->Score((*samples)[r].w, refs, rsz);
         }
       }
     }
@@ -262,9 +261,6 @@ main(int argc, char** argv)
 
     // decode
     lambdas.init_vector(&decoder_weights);
-    //observer->SetReference(refs, rsz);
-    //decoder.Decode(source, observer);
-    //vector<ScoredHyp>* samples = observer->GetSamples();
 
     // debug --
     debug_output << "\"1best\":\"";
@@ -286,12 +282,14 @@ main(int argc, char** argv)
       }
       debug_output << endl;
     }
+
     debug_output << "]," << endl;
     debug_output << "\"samples_size\":" << samples->size() << "," << endl;
     debug_output << "\"weights_before\":{" << endl;
     sparseVectorToJson(lambdas, debug_output);
     debug_output << "}," << endl;
     // -- debug
+    //
 
     // get pairs
     SparseVector<weight_t> update;

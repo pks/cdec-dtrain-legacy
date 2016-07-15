@@ -7,6 +7,14 @@
 #include <nanomsg/pair.h>
 #include "nn.hpp"
 
+#include <sys/types.h>  // mkfifo
+#include <sys/stat.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <fcntl.h>
+
+
 using namespace dtrain;
 
 int
@@ -27,6 +35,16 @@ main(int argc, char** argv)
                boost::is_any_of(" "));
   const bool output_derivation = conf["output_derivation"].as<bool>();
   const bool output_rules      = conf["output_rules"].as<bool>();
+
+  // update lm
+  /*if (conf["update_lm_fn"].as<string>() != "")
+    mkfifo(conf["update_lm_fn"].as<string>().c_str(), 0666);*/
+
+  // setup socket
+  nn::socket sock(AF_SP, NN_PAIR);
+  sock.bind(master_addr.c_str());
+  string hello = "hello";
+  sock.send(hello.c_str(), hello.size()+1, 0);
 
   // setup decoder
   register_feature_functions();
@@ -75,12 +93,6 @@ main(int argc, char** argv)
   cerr << setw(25) << "learning rate R "     << learning_rate_R     << endl;
   cerr << setw(25) << "learning rate RB "    << learning_rate_RB    << endl;
   cerr << setw(25) << "learning rate Shape " << learning_rate_Shape << endl;
-
-  // setup socket
-  nn::socket sock(AF_SP, NN_PAIR);
-  sock.bind(master_addr.c_str());
-  string hello = "hello";
-  sock.send(hello.c_str(), hello.size()+1, 0);
 
   // debug
   ostringstream debug_output;

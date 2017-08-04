@@ -1,4 +1,4 @@
-bin_PROGRAMS = cdec
+bin_PROGRAMS = cdec minimal_decoder
 
 noinst_PROGRAMS = \
   trule_test \
@@ -22,6 +22,9 @@ trule_test_LDADD = $(BOOST_UNIT_TEST_FRAMEWORK_LDFLAGS) $(BOOST_UNIT_TEST_FRAMEW
 cdec_SOURCES = cdec.cc
 cdec_LDFLAGS= -rdynamic $(STATIC_FLAGS)
 cdec_LDADD = libcdec.a ../mteval/libmteval.a ../utils/libutils.a ../klm/search/libksearch.a ../klm/lm/libklm.a ../klm/util/libklm_util.a ../klm/util/double-conversion/libklm_util_double.a
+
+minimal_decoder_SOURCES = minimal_decoder.cc
+minimal_decoder_LDADD = libcdec.a ../utils/libutils.a
 
 AM_CPPFLAGS = -DTEST_DATA=\"$(top_srcdir)/decoder/test_data\" -DBOOST_TEST_DYN_LINK -W -Wno-sign-compare -I$(top_srcdir) -I$(top_srcdir)/mteval -I$(top_srcdir)/utils -I$(top_srcdir)/klm
 

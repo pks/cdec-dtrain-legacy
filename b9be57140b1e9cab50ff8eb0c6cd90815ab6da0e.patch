@@ -1,0 +1,95 @@
+From b9be57140b1e9cab50ff8eb0c6cd90815ab6da0e Mon Sep 17 00:00:00 2001
+From: Patrick Simianer <p@simianer.de>
+Date: Tue, 19 Aug 2014 21:51:44 +0100
+Subject: [PATCH] added minimal decoder
+
+---
+ .gitignore                 |  1 +
+ decoder/Makefile.am        |  5 ++++-
+ decoder/minimal_decoder.cc | 45 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 50 insertions(+), 1 deletion(-)
+ create mode 100644 decoder/minimal_decoder.cc
+
+diff --git a/.gitignore b/.gitignore
+index 72f4997..0c78530 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -42,6 +42,7 @@ decoder/ff_test
+ decoder/grammar_test
+ decoder/hg_test
+ decoder/logval_test
++decoder/minimal_decoder
+ decoder/parser_test
+ decoder/rule_lexer.cc
+ decoder/small_vector_test
+diff --git a/decoder/Makefile.am b/decoder/Makefile.am
+index 8e61c13..9c4c714 100644
+--- a/decoder/Makefile.am
++++ b/decoder/Makefile.am
+@@ -1,4 +1,4 @@
+-bin_PROGRAMS = cdec
++bin_PROGRAMS = cdec minimal_decoder
+ 
+ noinst_PROGRAMS = \
+   trule_test \
+@@ -23,6 +23,9 @@ cdec_SOURCES = cdec.cc
+ cdec_LDFLAGS= -rdynamic
+ cdec_LDADD = libcdec.a ../mteval/libmteval.a ../utils/libutils.a ../klm/search/libksearch.a ../klm/lm/libklm.a ../klm/util/libklm_util.a ../klm/util/double-conversion/libklm_util_double.a
+ 
++minimal_decoder_SOURCES = minimal_decoder.cc
++minimal_decoder_LDADD = libcdec.a ../utils/libutils.a
++
+ AM_CPPFLAGS = -DTEST_DATA=\"$(top_srcdir)/decoder/test_data\" -DBOOST_TEST_DYN_LINK -W -Wno-sign-compare -I$(top_srcdir) -I$(top_srcdir)/mteval -I$(top_srcdir)/utils -I$(top_srcdir)/klm
+ 
+ rule_lexer.cc: rule_lexer.ll
+diff --git a/decoder/minimal_decoder.cc b/decoder/minimal_decoder.cc
+new file mode 100644
+index 0000000..0aa281a
+--- /dev/null
++++ b/decoder/minimal_decoder.cc
+@@ -0,0 +1,45 @@
++#include <fstream>
++#include <iostream>
++#include <sstream>
++
++#include "fdict.h"
++#include "filelib.h"
++#include "hg.h"
++#include "hg_io.h"
++#include "sparse_vector.h"
++#include "viterbi.h"
++
++
++using namespace std;
++
++/*
++ * Reads hypergraph from JSON file argv[1],
++ * reweights it using weights from argv[2],
++ * and outputs viterbi translation.
++ *
++ */
++int main(int argc, char** argv)
++{
++  ReadFile rf(argv[1]);
++  Hypergraph hg;
++  HypergraphIO::ReadFromJSON(rf.stream(), &hg);
++  SparseVector<double> v;
++  ifstream f(argv[2]);
++  string line;
++  while (getline(f, line)) {
++    istringstream ss(line);
++    string k; weight_t w;
++    ss >> k >> w;
++    v.add_value(FD::Convert(k), w);
++  }
++  hg.Reweight(v);
++  clock_t begin = clock();
++  hg.TopologicallySortNodesAndEdges(hg.NumberOfNodes()-1);
++  vector<WordID> trans;
++  ViterbiESentence(hg, &trans);
++  cout << TD::GetString(trans) << endl << flush;
++  clock_t end = clock();
++  double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
++  cout << elapsed_secs << " s" << endl;
++}
++

@@ -42,6 +42,7 @@ decoder/ff_test
 decoder/grammar_test
 decoder/hg_test
 decoder/logval_test
+decoder/minimal_decoder
 decoder/parser_test
 decoder/rule_lexer.cc
 decoder/small_vector_test

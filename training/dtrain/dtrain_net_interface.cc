@@ -104,6 +104,7 @@ main(int argc, char** argv)
   size_t i = 0;
   while(true)
   {
+    cerr << "[dtrain] looping" << endl;
     // debug --
     debug_output.str(string());
     debug_output.clear();

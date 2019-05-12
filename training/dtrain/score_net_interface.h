@@ -1,5 +1,5 @@
-#ifndef _DTRAIN_SCORE_H_
-#define _DTRAIN_SCORE_H_
+#ifndef _DTRAIN_SCORE_NET_INTERFACE_H_
+#define _DTRAIN_SCORE_NET_INTERFACE_H_
 
 #include "dtrain.h"
 
@@ -189,7 +189,8 @@ struct PerSentenceBleuScorer
                         / ((counts.sum_[i] + add)));
     }
 
-    return  BrevityPenalty(hl, rl+1) * exp(sum);
+    //return  BrevityPenalty(hl, rl+1) * exp(sum);
+    return  BrevityPenalty(hl, rl) * exp(sum);
   }
 };
 

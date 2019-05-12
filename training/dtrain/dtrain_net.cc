@@ -67,16 +67,19 @@ main(int argc, char** argv)
       } else {
         vector<string> parts;
         boost::algorithm::split_regex(parts, in, boost::regex(" \\|\\|\\| "));
-        source = parts[0];
-        parts.erase(parts.begin());
-        for (auto s: parts) {
-          vector<WordID> r;
-          vector<string> toks;
-          boost::split(toks, s, boost::is_any_of(" "));
-          for (auto tok: toks)
-            r.push_back(TD::Convert(tok));
-          refs.emplace_back(MakeNgrams(r, N));
-          rsz.push_back(r.size());
+        if (parts[0] == "act:translate") {
+        } else {
+          source = parts[0];
+          parts.erase(parts.begin());
+          for (auto s: parts) {
+            vector<WordID> r;
+            vector<string> toks;
+            boost::split(toks, s, boost::is_any_of(" "));
+            for (auto tok: toks)
+              r.push_back(TD::Convert(tok));
+            refs.emplace_back(MakeNgrams(r, N));
+            rsz.push_back(r.size());
+          }
         }
       }
     }

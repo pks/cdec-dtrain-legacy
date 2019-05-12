@@ -1,4 +1,5 @@
 cimport lattice
+from utils cimport *
 
 cdef class Lattice:
     cdef lattice.Lattice* lattice
@@ -31,16 +32,17 @@ cdef class Lattice:
         for i in range(arc_vector.size()):
             arc = &arc_vector[i]
             label = unicode(TDConvert(arc.label).c_str(), 'utf8')
-            arcs.append((label, arc.cost, arc.dist2next))
+            #arcs.append((label, arc.features, arc.dist2next))
+            arcs.append((label, arc.dist2next))
         return tuple(arcs)
 
     def __setitem__(self, int index, tuple arcs):
         if not 0 <= index < len(self):
             raise IndexError('lattice index out of range')
         cdef lattice.LatticeArc* arc
-        for (label, cost, dist2next) in arcs:
+        for (label, dist2next) in arcs:
             label_str = as_str(label)
-            arc = new lattice.LatticeArc(TDConvert(label_str), cost, dist2next)
+            arc = new lattice.LatticeArc() #TDConvert(label_str), features, dist2next)
             self.lattice[0][index].push_back(arc[0])
             del arc
 

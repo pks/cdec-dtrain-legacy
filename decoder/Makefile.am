@@ -1,4 +1,4 @@
-bin_PROGRAMS = cdec minimal_decoder network_decoder local
+bin_PROGRAMS = cdec minimal_decoder network_decoder
 
 noinst_PROGRAMS = \
   trule_test \

@@ -1,9 +1,9 @@
-#ifndef _DTRAIN_SAMPLE_H_
-#define _DTRAIN_SAMPLE_H_
+#ifndef _DTRAIN_SAMPLE_NET_H_
+#define _DTRAIN_SAMPLE_NET_H_
 
 #include "kbest.h"
 
-#include "score.h"
+#include "score_net_interface.h"
 
 namespace dtrain
 {
@@ -16,13 +16,14 @@ struct ScoredKbest : public DecoderObserver
   PerSentenceBleuScorer* scorer_;
   vector<Ngrams>* ref_ngs_;
   vector<size_t>* ref_ls_;
-  string viterbi_tree_str;
+  bool dont_score;
+  string viterbiTreeStr_, viterbiRules_;
 
   ScoredKbest(const size_t k, PerSentenceBleuScorer* scorer) :
-    k_(k), scorer_(scorer) {}
+    k_(k), scorer_(scorer), dont_score(false) {}
 
   virtual void
-  NotifyTranslationForest(const SentenceMetadata& smeta, Hypergraph* hg)
+  NotifyTranslationForest(const SentenceMetadata& /*smeta*/, Hypergraph* hg)
   {
     samples_.clear(); effective_sz_ = feature_count_ = 0;
     KBest::KBestDerivations<vector<WordID>, ESentenceTraversal,
@@ -37,11 +38,15 @@ struct ScoredKbest : public DecoderObserver
       h.f = d->feature_values;
       h.model = log(d->score);
       h.rank = i;
-      h.gold = scorer_->Score(h.w, *ref_ngs_, *ref_ls_);
+      if (!dont_score)
+        h.gold = scorer_->Score(h.w, *ref_ngs_, *ref_ls_);
       samples_.push_back(h);
       effective_sz_++;
       feature_count_ += h.f.size();
-      viterbi_tree_str = hg->show_viterbi_tree(false);
+      viterbiTreeStr_ = hg->show_viterbi_tree(false);
+      ostringstream ss;
+      ViterbiRules(*hg, &ss);
+      viterbiRules_ = ss.str();
     }
   }
 
@@ -53,7 +58,8 @@ struct ScoredKbest : public DecoderObserver
   }
   inline size_t GetFeatureCount() { return feature_count_; }
   inline size_t GetSize() { return effective_sz_; }
-  inline string GetViterbiTreeString() { return viterbi_tree_str; }
+  inline string GetViterbiTreeStr() { return viterbiTreeStr_; }
+  inline string GetViterbiRules() { return viterbiRules_; }
 };
 
 } // namespace

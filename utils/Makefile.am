@@ -1,4 +1,4 @@
-bin_PROGRAMS = reconstruct_weights atools dedup_corpus
+bin_PROGRAMS = reconstruct_weights atools atools_net dedup_corpus
 
 noinst_PROGRAMS = \
   ts \
@@ -98,6 +98,10 @@ atools_SOURCES = atools.cc
 atools_LDADD = libutils.a
 atools_LDFLAGS = $(STATIC_FLAGS)
 
+atools_net_SOURCES = atools_net.cc nn.hpp
+atools_net_LDADD = libutils.a
+atools_net_LDFLAGS = $(STATIC_FLAGS) /srv/postedit/lib/nanomsg-0.5-beta/lib/libnanomsg.so
+
 dedup_corpus_SOURCES = dedup_corpus.cc
 dedup_corpus_LDADD = libutils.a
 dedup_corpus_LDFLAGS = $(STATIC_FLAGS)
@@ -123,5 +127,5 @@ stringlib_test_LDADD = libutils.a $(BOOST_UNIT_TEST_FRAMEWORK_LDFLAGS) $(BOOST_U
 
 ################################################################
 # do NOT NOT NOT add any other -I includes NO NO NO NO NO ######
-AM_CPPFLAGS = -DBOOST_TEST_DYN_LINK -W -Wall -I. -I$(top_srcdir) -DTEST_DATA=\"$(top_srcdir)/utils/test_data\"
+AM_CPPFLAGS = -DBOOST_TEST_DYN_LINK -W -Wall -I. -I$(top_srcdir) -DTEST_DATA=\"$(top_srcdir)/utils/test_data\" -I/srv/postedit/lib/nanomsg-0.5-beta/include -I/srv/postedit/lib/cppnanomsg
 ################################################################

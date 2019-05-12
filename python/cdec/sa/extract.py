@@ -97,6 +97,57 @@ def stream_extract():
             sys.stdout.write('Error: see README.md for stream mode usage.  Skipping line: {}\n'.format(line.strip()))
         sys.stdout.flush()
 
+def stream_extract2(url):
+    global extractor, online, compress
+    import nanomsg
+    from nanomsg import Socket, PAIR, PUB
+    socket = nanomsg.Socket(nanomsg.PAIR)
+    socket.bind(url)
+    sys.stderr.write("[extractor] sending hello ...\n")
+    socket.send("hello")
+    default_context = "default_context"
+    while True:
+        line = socket.recv()
+        if line.strip() == "shutdown":
+            sys.stderr.write("[extractor] shutting down\n")
+            break
+        if not line:
+            break
+        fields = re.split('\s*\|\|\|\s*', line.strip())
+        # error
+        if len(fields) == 1:
+            socket.send("[extractor] error: can't process input '{}'".format(line.strip()))
+        # context ||| cmd
+        if len(fields) == 2:
+            (context, cmd) = fields
+            assert(context == default_context)
+            if cmd.lower() == 'drop':
+                if online:
+                    extractor.drop_ctx(context)
+                    socket.send("[extractor] dropping context '{}'".format(context))
+                else:
+                    socket.send("[extractor] error: online mode not set, skipping input: {}".format(line.strip()))
+            else:
+              socket.send("[extractor] don't know command '{}'".format(cmd))
+        # context ||| sentence ||| grammar_file
+        elif len(fields) == 3:
+            (context, sentence, grammar_file) = fields
+            assert(context == default_context)
+            with (gzip.open if compress else open)(grammar_file, 'w') as output:
+                for rule in extractor.grammar(sentence, context):
+                    output.write(str(rule)+'\n')
+            socket.send('{}'.format(grammar_file))
+        # context ||| sentence ||| reference ||| alignment
+        elif len(fields) == 4:
+            (context, sentence, reference, alignment) = fields
+            assert(context == default_context)
+            extractor.add_instance(sentence, reference, alignment, context)
+            socket.send("[extractor] learning (context: '{}')".format(context))
+        else:
+            socket.send("[extractor] error, skipping input: '{}'".format(line.strip()))
+    socket.send("off")
+    socket.close()
+
 def main():
     global online
     logging.basicConfig(level=logging.INFO)
@@ -117,9 +168,13 @@ def main():
                         help='compress grammars with gzip')
     parser.add_argument('-t', '--stream', action='store_true',
                         help='stream mode (see README.md)')
+    parser.add_argument('-u', '--stream2', action='store_true',
+                        help='stream2 mode')
+    parser.add_argument('-S', '--sock_url', default='tcp://127.0.0.1:8888',
+                        help='socket url')
     args = parser.parse_args()
 
-    if not (args.grammars or args.stream):
+    if not (args.grammars or (args.stream or args.stream2)):
         sys.stderr.write('Error: either -g/--grammars or -t/--stream required\n')
         sys.exit(1)
 
@@ -133,6 +188,9 @@ def main():
 
     online = args.online
     stream = args.stream
+    stream2 = args.stream2
+    if stream2:
+        online = True
 
     start_time = monitor_cpu()
     if args.jobs > 1:
@@ -150,6 +208,8 @@ def main():
         make_extractor(args)
         if stream:
             stream_extract()
+        if stream2:
+            stream_extract2(args.sock_url)
         else:
             for output in map(extract, enumerate(sys.stdin)):
                 print(output)

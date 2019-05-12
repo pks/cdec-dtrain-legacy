@@ -124,8 +124,8 @@ while true # round-robin
     update = SparseVector::from_kv socks[me].recv
     STDERR.write "T update from slave ##{me}\n"
     update *= learning_rate
-    update -= w
-    update /= moment
+    #update -= w
+    #update /= moment
     m.synchronize { w += update }
     STDERR.write "T sending new weights to slave ##{me}\n"
     socks[me].send w.to_kv

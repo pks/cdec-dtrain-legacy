@@ -24,7 +24,7 @@ inline void
 updateVectorFromString(string& s, SparseVector<T>& v)
 {
   string buf;
-  istringstream ss;
+  istringstream ss(s);
   while (ss >> buf) {
     size_t p = buf.find_last_of("=");
     istringstream c(buf.substr(p+1,buf.size()));
